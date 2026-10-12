@@ -1,5 +1,6 @@
 import {
   type QueryClient,
+  queryOptions,
   useMutation,
   useQuery,
   useQueryClient,
@@ -33,33 +34,37 @@ function onSignedIn(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ queryKey: queryKeys.auth.me })
 }
 
+export const setupStatusQuery = queryOptions({
+  queryKey: queryKeys.auth.setupStatus,
+  queryFn: authService.getSetupStatus,
+  staleTime: Infinity,
+})
+
 export function useSetupStatus() {
-  return useQuery({
-    queryKey: queryKeys.auth.setupStatus,
-    queryFn: authService.getSetupStatus,
-    staleTime: Infinity,
-  })
+  return useQuery(setupStatusQuery)
 }
 
 /**
  * The signed-in user with their workspaces, or null when signed out.
  * On page load this restores the session from the refresh cookie.
  */
+export const meQuery = queryOptions<Me | null>({
+  queryKey: queryKeys.auth.me,
+  queryFn: async () => {
+    try {
+      const me = await authService.me()
+      syncWorkspace(me)
+      return me
+    } catch (err) {
+      if (getErrorStatus(err) === 401) return null
+      throw err
+    }
+  },
+  staleTime: 5 * 60_000,
+})
+
 export function useMe() {
-  return useQuery<Me | null>({
-    queryKey: queryKeys.auth.me,
-    queryFn: async () => {
-      try {
-        const me = await authService.me()
-        syncWorkspace(me)
-        return me
-      } catch (err) {
-        if (getErrorStatus(err) === 401) return null
-        throw err
-      }
-    },
-    staleTime: 5 * 60_000,
-  })
+  return useQuery(meQuery)
 }
 
 export function useSetup() {
