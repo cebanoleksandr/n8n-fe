@@ -1,11 +1,11 @@
 import { createBrowserRouter, redirect } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
-import AppLayout from '../layouts/AppLayout'
-import AuthLayout from '../layouts/AuthLayout'
-import SettingsLayout from '../layouts/SettingsLayout'
+import AppLayout from '../components/layouts/AppLayout'
+import AuthLayout from '../components/layouts/AuthLayout'
+import SettingsLayout from '../components/layouts/SettingsLayout'
 import AcceptInvitationPage from '../pages/auth/AcceptInvitationPage'
 import LoginPage from '../pages/auth/LoginPage'
-import SetupPage from '../pages/auth/SetupPage'
+import RegisterPage from '../pages/auth/RegisterPage'
 import CredentialsPage from '../pages/credentials/CredentialsPage'
 import ExecutionDetailsPage from '../pages/executions/ExecutionDetailsPage'
 import ExecutionsPage from '../pages/executions/ExecutionsPage'
@@ -15,7 +15,7 @@ import ProfileSettingsPage from '../pages/settings/ProfileSettingsPage'
 import WorkspaceSettingsPage from '../pages/settings/WorkspaceSettingsPage'
 import WorkflowEditorPage from '../pages/workflows/WorkflowEditorPage'
 import WorkflowsPage from '../pages/workflows/WorkflowsPage'
-import { guestOnlyLoader, requireAuthLoader, setupLoader } from './loaders'
+import { guestOnlyLoader, requireAuthLoader } from './loaders'
 
 export const routes: RouteObject[] = [
   {
@@ -32,9 +32,9 @@ export const routes: RouteObject[] = [
         loader: guestOnlyLoader,
       },
       {
-        path: 'setup',
-        Component: SetupPage,
-        loader: setupLoader,
+        path: 'register',
+        Component: RegisterPage,
+        loader: guestOnlyLoader,
       },
       {
         // The link built from CreatedInvitation.token

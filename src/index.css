@@ -1,1 +1,3 @@
+/* MUI styles sit in their own layer so Tailwind utilities override them. */
+@layer theme, base, mui, components, utilities;
 @import "tailwindcss";

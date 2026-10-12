@@ -57,10 +57,13 @@ export interface Me extends User {
   workspaces: Membership[]
 }
 
-export interface SetupInput {
+/** Sign-up: creates the account and a workspace it owns. */
+export interface RegisterInput {
   email: string
   name: string
+  /** At least 8 characters. */
   password: string
+  /** Defaults to "<name>'s workspace". */
   workspaceName?: string
 }
 

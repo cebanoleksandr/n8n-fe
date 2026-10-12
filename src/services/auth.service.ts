@@ -7,7 +7,7 @@ import type {
   LoginInput,
   Me,
   Session,
-  SetupInput,
+  RegisterInput,
 } from '../api/types'
 
 function startSession(data: Session): Session {
@@ -16,14 +16,13 @@ function startSession(data: Session): Session {
 }
 
 export const authService = {
-  async getSetupStatus(): Promise<{ needsSetup: boolean }> {
-    const { data } = await api.get<{ needsSetup: boolean }>('/auth/setup')
-    return data
-  },
-
-  /** Creates the first user (owner). Works only once. */
-  async setup(input: SetupInput): Promise<Session> {
-    const { data } = await api.post<Session>('/auth/setup', input)
+  /**
+   * Creates the account and its own workspace, and signs in.
+   * Errors: 409 email taken, 400 invalid fields, 403 sign-up disabled,
+   * 429 too many sign-ups from this address.
+   */
+  async register(input: RegisterInput): Promise<Session> {
+    const { data } = await api.post<Session>('/auth/register', input)
     return startSession(data)
   },
 

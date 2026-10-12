@@ -13,7 +13,6 @@ export const queryKeys = {
   auth: {
     all: ['auth'] as const,
     me: ['auth', 'me'] as const,
-    setupStatus: ['auth', 'setup'] as const,
     invitation: (token: string) => ['auth', 'invitation', token] as const,
   },
 

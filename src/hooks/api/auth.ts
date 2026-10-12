@@ -14,7 +14,7 @@ import type {
   ChangePasswordInput,
   LoginInput,
   Me,
-  SetupInput,
+  RegisterInput,
 } from '../../api/types'
 import { authService } from '../../services/auth.service'
 import { realtimeService } from '../../services/realtime.service'
@@ -30,18 +30,7 @@ function syncWorkspace(me: Me) {
 /** A different user may have signed in: drop everything cached before. */
 function onSignedIn(queryClient: QueryClient) {
   queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' })
-  queryClient.setQueryData(queryKeys.auth.setupStatus, { needsSetup: false })
   return queryClient.invalidateQueries({ queryKey: queryKeys.auth.me })
-}
-
-export const setupStatusQuery = queryOptions({
-  queryKey: queryKeys.auth.setupStatus,
-  queryFn: authService.getSetupStatus,
-  staleTime: Infinity,
-})
-
-export function useSetupStatus() {
-  return useQuery(setupStatusQuery)
 }
 
 /**
@@ -67,10 +56,11 @@ export function useMe() {
   return useQuery(meQuery)
 }
 
-export function useSetup() {
+/** Sign-up; on success the user is signed in to their new workspace. */
+export function useRegister() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: SetupInput) => authService.setup(input),
+    mutationFn: (input: RegisterInput) => authService.register(input),
     onSuccess: () => onSignedIn(queryClient),
   })
 }

@@ -17,7 +17,7 @@ export const api = axios.create({
 
 /** Routes that never need an access token. */
 const PUBLIC_ROUTES = [
-  /^\/?auth\/(setup|login|refresh|logout)$/,
+  /^\/?auth\/(register|login|refresh|logout)$/,
   /^\/?auth\/invitations\//,
   /^\/?health/,
 ]
