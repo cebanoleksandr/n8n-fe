@@ -1,0 +1,70 @@
+{
+  "common": {
+    "loading": "Загрузка…",
+    "optional": "Необязательно",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль",
+    "cancel": "Отмена",
+    "confirm": "Подтвердить"
+  },
+  "nav": {
+    "workflows": "Воркфлоу",
+    "executions": "Запуски",
+    "credentials": "Учётные данные",
+    "settings": "Настройки",
+    "profile": "Профиль",
+    "workspace": "Воркспейс",
+    "members": "Участники",
+    "logout": "Выйти"
+  },
+  "errors": {
+    "tooManyRequests": "Слишком много попыток. Попробуйте позже.",
+    "network": "Нет связи с сервером. Проверьте подключение."
+  },
+  "auth": {
+    "fields": {
+      "name": "Имя",
+      "email": "Email",
+      "password": "Пароль",
+      "confirmPassword": "Повторите пароль",
+      "workspaceName": "Название воркспейса"
+    },
+    "validation": {
+      "emailRequired": "Введите email",
+      "emailInvalid": "Некорректный email",
+      "emailTooLong": "Слишком длинный email",
+      "passwordRequired": "Введите пароль",
+      "passwordTooShort": "Минимум 8 символов",
+      "passwordTooLong": "Слишком длинный пароль",
+      "confirmPasswordRequired": "Повторите пароль",
+      "passwordsMismatch": "Пароли не совпадают",
+      "nameRequired": "Введите имя",
+      "nameTooLong": "Слишком длинное имя",
+      "workspaceNameTooLong": "Слишком длинное название"
+    },
+    "login": {
+      "title": "Вход",
+      "subtitle": "С возвращением",
+      "submit": "Войти",
+      "noAccount": "Нет аккаунта?",
+      "signUpLink": "Зарегистрироваться",
+      "invalidCredentials": "Неверный email или пароль"
+    },
+    "register": {
+      "title": "Регистрация",
+      "subtitle": "Для вас будет создан личный воркспейс",
+      "passwordHint": "Минимум 8 символов",
+      "submit": "Зарегистрироваться",
+      "haveAccount": "Уже есть аккаунт?",
+      "signInLink": "Войти",
+      "emailTaken": "Этот email уже зарегистрирован",
+      "disabled": "Регистрация отключена. Попросите приглашение.",
+      "success": "Добро пожаловать! Аккаунт создан."
+    },
+    "logout": {
+      "title": "Выйти из аккаунта?",
+      "text": "Чтобы вернуться к своим воркфлоу, нужно будет войти снова.",
+      "confirm": "Выйти"
+    }
+  }
+}

@@ -4,7 +4,7 @@ import { meQuery } from '../hooks/api/auth'
 
 /** Protected routes: a guest goes to login and comes back afterwards. */
 export const requireAuthLoader = async ({ request }: LoaderFunctionArgs) => {
-  const me = await queryClient.ensureQueryData(meQuery)
+  const me = await queryClient.query({ ...meQuery, staleTime: 'static' })
   if (!me) {
     const { pathname, search } = new URL(request.url)
     const redirectTo = encodeURIComponent(pathname + search)
@@ -15,7 +15,7 @@ export const requireAuthLoader = async ({ request }: LoaderFunctionArgs) => {
 
 /** Login and sign-up: nothing to do here once signed in. */
 export const guestOnlyLoader = async () => {
-  const me = await queryClient.ensureQueryData(meQuery)
+  const me = await queryClient.query({ ...meQuery, staleTime: 'static' })
   if (me) return redirect('/workflows')
   return null
 }

@@ -27,10 +27,15 @@ function syncWorkspace(me: Me) {
   void resetWorkspaceQueries()
 }
 
-/** A different user may have signed in: drop everything cached before. */
+/**
+ * A different user may have signed in: drop everything cached before.
+ * `me` is fetched right away, not just invalidated: on the auth pages nothing
+ * observes it, so an invalidation would not refetch, and the route loader
+ * would still read the cached `null` and send the user back to login.
+ */
 function onSignedIn(queryClient: QueryClient) {
   queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' })
-  return queryClient.invalidateQueries({ queryKey: queryKeys.auth.me })
+  return queryClient.query({ ...meQuery, staleTime: 0 })
 }
 
 /**

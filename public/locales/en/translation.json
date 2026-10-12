@@ -1,0 +1,70 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "optional": "Optional",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "nav": {
+    "workflows": "Workflows",
+    "executions": "Executions",
+    "credentials": "Credentials",
+    "settings": "Settings",
+    "profile": "Profile",
+    "workspace": "Workspace",
+    "members": "Members",
+    "logout": "Log out"
+  },
+  "errors": {
+    "tooManyRequests": "Too many attempts. Try again later.",
+    "network": "Can't reach the server. Check your connection."
+  },
+  "auth": {
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Repeat password",
+      "workspaceName": "Workspace name"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email",
+      "emailTooLong": "Email is too long",
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "At least 8 characters",
+      "passwordTooLong": "Password is too long",
+      "confirmPasswordRequired": "Repeat the password",
+      "passwordsMismatch": "Passwords do not match",
+      "nameRequired": "Name is required",
+      "nameTooLong": "Name is too long",
+      "workspaceNameTooLong": "Workspace name is too long"
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Welcome back",
+      "submit": "Sign in",
+      "noAccount": "No account?",
+      "signUpLink": "Sign up",
+      "invalidCredentials": "Invalid email or password"
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "You get a workspace of your own",
+      "passwordHint": "At least 8 characters",
+      "submit": "Sign up",
+      "haveAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "emailTaken": "This email is already registered",
+      "disabled": "Sign-up is disabled. Ask for an invitation.",
+      "success": "Welcome! Your account is ready."
+    },
+    "logout": {
+      "title": "Log out?",
+      "text": "You will need to sign in again to get back to your workflows.",
+      "confirm": "Log out"
+    }
+  }
+}
