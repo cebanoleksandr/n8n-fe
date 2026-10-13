@@ -7,7 +7,14 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "retry": "Retry",
-    "actions": "Actions"
+    "actions": "Actions",
+    "clearSearch": "Clear search",
+    "back": "Back",
+    "save": "Save",
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "updated": "Last updated {{when}}",
+    "created": "Created {{when}}"
   },
   "nav": {
     "workflows": "Workflows",
@@ -83,8 +90,6 @@
     "create": "Create workflow",
     "defaultName": "My workflow",
     "createFailed": "Could not create the workflow",
-    "updated": "Last updated {{when}}",
-    "created": "Created {{when}}",
     "loadFailed": "Couldn't load workflows",
     "toggleFailed": "Couldn't change the workflow status",
     "exportFailed": "Couldn't export the workflow",
@@ -105,15 +110,7 @@
       "title": "Delete workflow?",
       "text": "\"{{name}}\" and all its executions will be deleted. This cannot be undone."
     },
-    "search": "Search",
-    "clearSearch": "Clear search",
-    "sort": {
-      "label": "Sort",
-      "updatedDesc": "Sort by last updated",
-      "createdDesc": "Sort by last created",
-      "nameAsc": "Sort by name (A-Z)",
-      "nameDesc": "Sort by name (Z-A)"
-    },
+    "search": "Search workflows…",
     "notFound": {
       "title": "Nothing found",
       "text": "No workflows match \"{{search}}\"."
@@ -138,5 +135,65 @@
     "total": "Total {{count}}",
     "perPage": "{{count}} / page",
     "perPageLabel": "Items per page"
+  },
+  "sort": {
+    "label": "Sort",
+    "updatedDesc": "Sort by last updated",
+    "createdDesc": "Sort by last created",
+    "nameAsc": "Sort by name (A-Z)",
+    "nameDesc": "Sort by name (Z-A)"
+  },
+  "credentials": {
+    "create": "Create credential",
+    "search": "Search credentials…",
+    "searchTypes": "Search apps and services…",
+    "noTypes": "No matching credential types",
+    "chooseType": "Choose a credential type",
+    "newTitle": "New {{type}} credential",
+    "editTitle": "Edit credential",
+    "defaultName": "{{type}} account",
+    "secretKept": "Saved. Leave empty to keep it.",
+    "saved": "Credential saved",
+    "deleted": "Credential deleted",
+    "deleteFailed": "Couldn't delete the credential",
+    "loadFailed": "Couldn't load credentials",
+    "loadOneFailed": "Couldn't load the credential",
+    "unknownType": "Unknown credential type \"{{type}}\"",
+    "fields": {
+      "name": "Name"
+    },
+    "validation": {
+      "required": "This field is required",
+      "number": "Enter a number",
+      "nameRequired": "Name is required"
+    },
+    "empty": {
+      "title": "No credentials yet",
+      "text": "Credentials let your workflows sign in to other apps and services."
+    },
+    "notFound": {
+      "title": "Nothing found",
+      "text": "No credentials match \"{{search}}\"."
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "deleteConfirm": {
+      "title": "Delete credential?",
+      "text": "\"{{name}}\" will be deleted. Workflows that use it will fail until you pick another one."
+    },
+    "oauth2": {
+      "redirectUri": "OAuth Redirect URL",
+      "redirectUriHint": "Register this URL in the provider's app settings.",
+      "connect": "Connect account",
+      "reconnect": "Reconnect",
+      "connected": "Account connected",
+      "connectedStatus": "Connected",
+      "notConnected": "Not connected",
+      "connectFailed": "Couldn't connect the account",
+      "saveFirst": "Save your changes before connecting.",
+      "connectNow": "Saved. Now connect your account."
+    }
   }
 }

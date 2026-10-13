@@ -3,7 +3,8 @@ import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom'
+import { useHasRole } from '../../hooks/api'
 import { useCreateWorkflowAndOpen } from '../../hooks/useCreateWorkflowAndOpen'
 
 const tabs = [
@@ -16,9 +17,22 @@ const tabs = [
 const OverviewLayout = () => {
   const { t } = useTranslation()
   const { pathname } = useLocation()
+  const [, setSearchParams] = useSearchParams()
+  const canEdit = useHasRole('editor')
   const { createAndOpen, isPending } = useCreateWorkflowAndOpen()
 
   const current = tabs.find((tab) => pathname === tab.to)?.to ?? false
+  const isCredentials = current === '/credentials'
+
+  // CredentialsPage opens its popup on ?new=1.
+  const openNewCredential = () =>
+    setSearchParams(
+      (params) => {
+        params.set('new', '1')
+        return params
+      },
+      { replace: true },
+    )
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-6 flex flex-col gap-4">
@@ -29,9 +43,16 @@ const OverviewLayout = () => {
             {t('overview.subtitle')}
           </Typography>
         </div>
-        <Button variant="contained" onClick={createAndOpen} loading={isPending}>
-          {t('workflows.create')}
-        </Button>
+        {canEdit &&
+          (isCredentials ? (
+            <Button variant="contained" onClick={openNewCredential}>
+              {t('credentials.create')}
+            </Button>
+          ) : (
+            <Button variant="contained" onClick={createAndOpen} loading={isPending}>
+              {t('workflows.create')}
+            </Button>
+          ))}
       </div>
 
       <Tabs value={current} sx={{ borderBottom: 1, borderColor: 'divider' }}>

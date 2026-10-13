@@ -112,11 +112,11 @@ const WorkflowCard: FC<IProps> = ({ workflow }) => {
             {workflow.name}
           </Link>
           <Typography variant="caption" color="text.secondary" component="div" noWrap>
-            {t('workflows.updated', { when: formatRelative(workflow.updatedAt, i18n.language) })}
+            {t('common.updated', { when: formatRelative(workflow.updatedAt, i18n.language) })}
             <Box component="span" sx={{ mx: 1, color: 'divider' }}>
               |
             </Box>
-            {t('workflows.created', { when: formatDay(workflow.createdAt, i18n.language) })}
+            {t('common.created', { when: formatDay(workflow.createdAt, i18n.language) })}
           </Typography>
         </div>
 

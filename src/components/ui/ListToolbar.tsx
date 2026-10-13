@@ -7,28 +7,27 @@ import TextField from '@mui/material/TextField'
 import ClearIcon from '@mui/icons-material/Clear'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTranslation } from 'react-i18next'
-import { WORKFLOW_SORTS, type WorkflowSort } from '../../api/types'
+import { LIST_SORTS, type ListSort, SORT_LABELS } from '../../utils/sorting'
 
 const SEARCH_DELAY_MS = 300
 
-// Translation keys can't contain the API values: i18next reads ":" as the
-// namespace separator, so 'sort.name:asc' would come out as just "asc".
-const SORT_LABELS: Record<WorkflowSort, string> = {
-  'updatedAt:desc': 'workflows.sort.updatedDesc',
-  'createdAt:desc': 'workflows.sort.createdDesc',
-  'name:asc': 'workflows.sort.nameAsc',
-  'name:desc': 'workflows.sort.nameDesc',
-}
-
 interface IProps {
   search: string
-  sort: WorkflowSort
+  sort: ListSort
+  /** E.g. "Search workflows…". */
+  searchPlaceholder: string
   onSearchChange: (search: string) => void
-  onSortChange: (sort: WorkflowSort) => void
+  onSortChange: (sort: ListSort) => void
 }
 
-/** Search and sort above the workflow list. */
-const WorkflowsToolbar: FC<IProps> = ({ search, sort, onSearchChange, onSortChange }) => {
+/** Search and sort above a list, as in n8n's overview tabs. */
+const ListToolbar: FC<IProps> = ({
+  search,
+  sort,
+  searchPlaceholder,
+  onSearchChange,
+  onSortChange,
+}) => {
   const { t } = useTranslation()
   // Typed text; the list is asked only once the user pauses.
   const [text, setText] = useState(search)
@@ -54,8 +53,8 @@ const WorkflowsToolbar: FC<IProps> = ({ search, sort, onSearchChange, onSortChan
         size="small"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={t('workflows.search')}
-        aria-label={t('workflows.search')}
+        placeholder={searchPlaceholder}
+        aria-label={searchPlaceholder}
         className="w-full sm:w-64"
         slotProps={{
           htmlInput: { maxLength: 128 },
@@ -70,7 +69,7 @@ const WorkflowsToolbar: FC<IProps> = ({ search, sort, onSearchChange, onSortChan
                 <IconButton
                   size="small"
                   edge="end"
-                  aria-label={t('workflows.clearSearch')}
+                  aria-label={t('common.clearSearch')}
                   onClick={() => {
                     setText('')
                     onSearchChange('')
@@ -86,11 +85,11 @@ const WorkflowsToolbar: FC<IProps> = ({ search, sort, onSearchChange, onSortChan
       <Select
         size="small"
         value={sort}
-        onChange={(e) => onSortChange(e.target.value as WorkflowSort)}
-        aria-label={t('workflows.sort.label')}
+        onChange={(e) => onSortChange(e.target.value as ListSort)}
+        aria-label={t('sort.label')}
         className="w-full sm:w-auto"
       >
-        {WORKFLOW_SORTS.map((value) => (
+        {LIST_SORTS.map((value) => (
           <MenuItem key={value} value={value}>
             {t(SORT_LABELS[value])}
           </MenuItem>
@@ -100,4 +99,4 @@ const WorkflowsToolbar: FC<IProps> = ({ search, sort, onSearchChange, onSortChan
   )
 }
 
-export default WorkflowsToolbar
+export default ListToolbar

@@ -7,43 +7,18 @@ import Typography from '@mui/material/Typography'
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined'
 import SearchOffIcon from '@mui/icons-material/SearchOff'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
-import { WORKFLOW_SORTS, type WorkflowSort } from '../../api/types'
 import ListPagination from '../../components/ui/ListPagination'
+import ListToolbar from '../../components/ui/ListToolbar'
 import WorkflowCard from '../../components/workflows/WorkflowCard'
-import WorkflowsToolbar from '../../components/workflows/WorkflowsToolbar'
 import { useHasRole, useWorkflows } from '../../hooks/api'
 import { useCreateWorkflowAndOpen } from '../../hooks/useCreateWorkflowAndOpen'
-import { PAGE_SIZES } from '../../utils/pagination'
-
-const DEFAULTS = {
-  page: 1,
-  limit: 20,
-  search: '',
-  sort: 'updatedAt:desc' as WorkflowSort,
-}
-
-type ListState = typeof DEFAULTS
-
-/** List state from the URL, falling back on anything invalid. */
-function readState(params: URLSearchParams): ListState {
-  const page = Number(params.get('page'))
-  const limit = Number(params.get('limit'))
-  const sort = params.get('sort') as WorkflowSort
-  return {
-    page: Number.isInteger(page) && page > 0 ? page : DEFAULTS.page,
-    limit: PAGE_SIZES.includes(limit) ? limit : DEFAULTS.limit,
-    search: params.get('search')?.trim() ?? DEFAULTS.search,
-    sort: WORKFLOW_SORTS.includes(sort) ? sort : DEFAULTS.sort,
-  }
-}
+import { useListParams } from '../../hooks/useListParams'
 
 const WorkflowsPage = () => {
   const { t } = useTranslation()
   const canEdit = useHasRole('editor')
   const { createAndOpen, isPending: isCreating } = useCreateWorkflowAndOpen()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const { page, limit, search, sort } = readState(searchParams)
+  const { page, limit, search, sort, update } = useListParams()
 
   const { data, isPending, isError, refetch, isPlaceholderData } = useWorkflows({
     limit,
@@ -51,21 +26,6 @@ const WorkflowsPage = () => {
     search: search || undefined,
     sort,
   })
-
-  /** Writes changes to the URL; default values are left out to keep it short. */
-  const update = (patch: Partial<ListState>) => {
-    setSearchParams(
-      (params) => {
-        const next = { ...readState(params), ...patch }
-        for (const key of Object.keys(DEFAULTS) as (keyof ListState)[]) {
-          if (next[key] === DEFAULTS[key]) params.delete(key)
-          else params.set(key, String(next[key]))
-        }
-        return params
-      },
-      { replace: true },
-    )
-  }
 
   // The last item of the last page was deleted, or the URL points past the end.
   const lastPage = data ? Math.max(1, Math.ceil(data.total / limit)) : page
@@ -109,7 +69,7 @@ const WorkflowsPage = () => {
             {t('workflows.notFound.text', { search })}
           </Typography>
           <Button onClick={() => update({ search: '', page: 1 })}>
-            {t('workflows.clearSearch')}
+            {t('common.clearSearch')}
           </Button>
         </Paper>
       )
@@ -156,9 +116,10 @@ const WorkflowsPage = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <WorkflowsToolbar
+      <ListToolbar
         search={search}
         sort={sort}
+        searchPlaceholder={t('workflows.search')}
         onSearchChange={(next) => update({ search: next, page: 1 })}
         onSortChange={(next) => update({ sort: next, page: 1 })}
       />
