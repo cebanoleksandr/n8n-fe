@@ -2,7 +2,9 @@ import { createBrowserRouter, redirect } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import AppLayout from '../components/layouts/AppLayout'
 import AuthLayout from '../components/layouts/AuthLayout'
+import OverviewLayout from '../components/layouts/OverviewLayout'
 import SettingsLayout from '../components/layouts/SettingsLayout'
+import WorkflowLayout from '../components/layouts/WorkflowLayout'
 import AcceptInvitationPage from '../pages/auth/AcceptInvitationPage'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
@@ -14,6 +16,7 @@ import MembersSettingsPage from '../pages/settings/MembersSettingsPage'
 import ProfileSettingsPage from '../pages/settings/ProfileSettingsPage'
 import WorkspaceSettingsPage from '../pages/settings/WorkspaceSettingsPage'
 import WorkflowEditorPage from '../pages/workflows/WorkflowEditorPage'
+import WorkflowExecutionsPage from '../pages/workflows/WorkflowExecutionsPage'
 import WorkflowsPage from '../pages/workflows/WorkflowsPage'
 import { guestOnlyLoader, requireAuthLoader } from './loaders'
 
@@ -53,25 +56,39 @@ export const routes: RouteObject[] = [
         loader: () => redirect('/workflows'),
       },
       {
-        path: 'workflows',
-        Component: WorkflowsPage,
+        Component: OverviewLayout,
+        children: [
+          {
+            path: 'workflows',
+            Component: WorkflowsPage,
+          },
+          {
+            path: 'credentials',
+            Component: CredentialsPage,
+          },
+          {
+            path: 'executions',
+            Component: ExecutionsPage,
+          },
+        ],
       },
       {
-        // The editor needs the whole screen, so it may later move out of AppLayout.
         path: 'workflows/:workflowId',
-        Component: WorkflowEditorPage,
-      },
-      {
-        path: 'executions',
-        Component: ExecutionsPage,
+        Component: WorkflowLayout,
+        children: [
+          {
+            index: true,
+            Component: WorkflowEditorPage,
+          },
+          {
+            path: 'executions',
+            Component: WorkflowExecutionsPage,
+          },
+        ],
       },
       {
         path: 'executions/:executionId',
         Component: ExecutionDetailsPage,
-      },
-      {
-        path: 'credentials',
-        Component: CredentialsPage,
       },
       {
         path: 'settings',

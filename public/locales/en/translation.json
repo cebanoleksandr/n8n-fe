@@ -15,7 +15,10 @@
     "profile": "Profile",
     "workspace": "Workspace",
     "members": "Members",
-    "logout": "Log out"
+    "logout": "Log out",
+    "overview": "Overview",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
   },
   "errors": {
     "tooManyRequests": "Too many attempts. Try again later.",
@@ -66,5 +69,26 @@
       "text": "You will need to sign in again to get back to your workflows.",
       "confirm": "Log out"
     }
+  },
+  "app": {
+    "name": "Flow"
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Workflows, credentials and executions in this workspace"
+  },
+  "workflows": {
+    "create": "Create workflow",
+    "defaultName": "My workflow",
+    "createFailed": "Could not create the workflow"
+  },
+  "workflow": {
+    "tabs": {
+      "editor": "Editor",
+      "executions": "Executions"
+    },
+    "active": "Active",
+    "inactive": "Inactive",
+    "notFound": "Workflow not found"
   }
 }
