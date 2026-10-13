@@ -195,5 +195,87 @@
       "saveFirst": "Save your changes before connecting.",
       "connectNow": "Saved. Now connect your account."
     }
+  },
+  "executions": {
+    "autoRefresh": "Auto refresh",
+    "loadFailed": "Couldn't load executions",
+    "canceledAlert": "Execution canceled",
+    "cancelFailed": "Couldn't cancel the execution",
+    "columns": {
+      "workflow": "Workflow",
+      "status": "Status",
+      "started": "Started",
+      "runTime": "Run time",
+      "id": "Exec. ID"
+    },
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "waiting": "Waiting",
+      "success": "Success",
+      "error": "Error",
+      "canceled": "Canceled"
+    },
+    "mode": {
+      "manual": "Started manually",
+      "webhook": "Started by a webhook",
+      "schedule": "Started on schedule",
+      "error": "Started by an error workflow",
+      "subworkflow": "Started by another workflow"
+    },
+    "actions": {
+      "open": "Open",
+      "openWorkflow": "Open workflow",
+      "cancel": "Stop",
+      "openEditor": "Open in editor"
+    },
+    "filter": {
+      "title": "Filter",
+      "status": "Status",
+      "workflow": "Workflow",
+      "any": "Any",
+      "noWorkflows": "No workflows",
+      "reset": "Reset filters"
+    },
+    "empty": {
+      "title": "No executions yet",
+      "text": "Runs of your workflows will show up here."
+    },
+    "notFound": {
+      "title": "Nothing found",
+      "text": "No executions match these filters."
+    },
+    "title": "Executions",
+    "loadMore": "Load more",
+    "workflowEmpty": "Run this workflow, and its executions will show up here.",
+    "notFoundOne": "Couldn't find this execution",
+    "graphFailed": "Couldn't load the workflow version of this run",
+    "version": "Version {{version}}",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "statusIn": {
+      "success": "Succeeded in {{duration}}",
+      "error": "Error in {{duration}}",
+      "canceled": "Canceled after {{duration}}",
+      "queued": "Queued",
+      "running": "Running",
+      "waiting": "Waiting"
+    },
+    "logs": {
+      "input": "Input",
+      "output": "Output",
+      "noItems": "No items",
+      "noInput": "No input data: this node starts the workflow, or nothing reached it.",
+      "noSteps": "No node has run yet",
+      "pickNode": "Pick a node to see its data",
+      "item": "Item {{index}}",
+      "moreItems": "… and {{count}} more items",
+      "from": "From {{node}}",
+      "pinned": "Pinned data",
+      "tries_one": "{{count}} try",
+      "tries_other": "{{count}} tries",
+      "errorItem": "At item {{index}}",
+      "outputN": "Output {{index}}"
+    }
   }
 }

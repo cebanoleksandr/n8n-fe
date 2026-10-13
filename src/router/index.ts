@@ -1,122 +1,135 @@
 import { createBrowserRouter, redirect } from 'react-router-dom'
+import type { ComponentType } from 'react'
 import type { RouteObject } from 'react-router-dom'
 import AppLayout from '../components/layouts/AppLayout'
 import AuthLayout from '../components/layouts/AuthLayout'
-import OverviewLayout from '../components/layouts/OverviewLayout'
-import SettingsLayout from '../components/layouts/SettingsLayout'
-import WorkflowLayout from '../components/layouts/WorkflowLayout'
-import AcceptInvitationPage from '../pages/auth/AcceptInvitationPage'
-import LoginPage from '../pages/auth/LoginPage'
-import RegisterPage from '../pages/auth/RegisterPage'
-import CredentialsPage from '../pages/credentials/CredentialsPage'
-import ExecutionDetailsPage from '../pages/executions/ExecutionDetailsPage'
-import ExecutionsPage from '../pages/executions/ExecutionsPage'
-import NotFoundPage from '../pages/NotFoundPage'
-import MembersSettingsPage from '../pages/settings/MembersSettingsPage'
-import ProfileSettingsPage from '../pages/settings/ProfileSettingsPage'
-import WorkspaceSettingsPage from '../pages/settings/WorkspaceSettingsPage'
-import WorkflowEditorPage from '../pages/workflows/WorkflowEditorPage'
-import WorkflowExecutionsPage from '../pages/workflows/WorkflowExecutionsPage'
-import WorkflowsPage from '../pages/workflows/WorkflowsPage'
+import RootLayout from '../components/layouts/RootLayout'
+import AppLoader from '../components/ui/AppLoader'
 import { guestOnlyLoader, requireAuthLoader } from './loaders'
+
+/**
+ * Loads a page's code when its route is first visited, so each page is its
+ * own chunk. Nested lazy routes load in parallel, not one after another.
+ */
+function page(load: () => Promise<{ default: ComponentType }>): RouteObject['lazy'] {
+  return async () => ({ Component: (await load()).default })
+}
 
 export const routes: RouteObject[] = [
   {
-    path: 'auth',
-    Component: AuthLayout,
+    Component: RootLayout,
+    // Shown on first load until the matched pages' code has arrived.
+    HydrateFallback: AppLoader,
     children: [
       {
-        index: true,
-        loader: () => redirect('/auth/login'),
-      },
-      {
-        path: 'login',
-        Component: LoginPage,
-        loader: guestOnlyLoader,
-      },
-      {
-        path: 'register',
-        Component: RegisterPage,
-        loader: guestOnlyLoader,
-      },
-      {
-        // The link built from CreatedInvitation.token
-        path: 'invite/:token',
-        Component: AcceptInvitationPage,
-      },
-    ],
-  },
-  {
-    path: '/',
-    Component: AppLayout,
-    loader: requireAuthLoader,
-    children: [
-      {
-        index: true,
-        loader: () => redirect('/workflows'),
-      },
-      {
-        Component: OverviewLayout,
-        children: [
-          {
-            path: 'workflows',
-            Component: WorkflowsPage,
-          },
-          {
-            path: 'credentials',
-            Component: CredentialsPage,
-          },
-          {
-            path: 'executions',
-            Component: ExecutionsPage,
-          },
-        ],
-      },
-      {
-        path: 'workflows/:workflowId',
-        Component: WorkflowLayout,
+        path: 'auth',
+        Component: AuthLayout,
         children: [
           {
             index: true,
-            Component: WorkflowEditorPage,
+            loader: () => redirect('/auth/login'),
           },
           {
-            path: 'executions',
-            Component: WorkflowExecutionsPage,
+            path: 'login',
+            loader: guestOnlyLoader,
+            lazy: page(() => import('../pages/auth/LoginPage')),
+          },
+          {
+            path: 'register',
+            loader: guestOnlyLoader,
+            lazy: page(() => import('../pages/auth/RegisterPage')),
+          },
+          {
+            // The link built from CreatedInvitation.token
+            path: 'invite/:token',
+            lazy: page(() => import('../pages/auth/AcceptInvitationPage')),
           },
         ],
       },
       {
-        path: 'executions/:executionId',
-        Component: ExecutionDetailsPage,
-      },
-      {
-        path: 'settings',
-        Component: SettingsLayout,
+        path: '/',
+        Component: AppLayout,
+        loader: requireAuthLoader,
         children: [
           {
             index: true,
-            loader: () => redirect('/settings/profile'),
+            loader: () => redirect('/workflows'),
           },
           {
-            path: 'profile',
-            Component: ProfileSettingsPage,
+            lazy: page(() => import('../components/layouts/OverviewLayout')),
+            children: [
+              {
+                path: 'workflows',
+                lazy: page(() => import('../pages/workflows/WorkflowsPage')),
+              },
+              {
+                path: 'credentials',
+                lazy: page(() => import('../pages/credentials/CredentialsPage')),
+              },
+              {
+                path: 'executions',
+                lazy: page(() => import('../pages/executions/ExecutionsPage')),
+              },
+            ],
           },
           {
-            path: 'workspace',
-            Component: WorkspaceSettingsPage,
+            path: 'workflows/:workflowId',
+            lazy: page(() => import('../components/layouts/WorkflowLayout')),
+            children: [
+              {
+                index: true,
+                lazy: page(() => import('../pages/workflows/WorkflowEditorPage')),
+              },
+              {
+                path: 'executions',
+                lazy: page(() => import('../pages/workflows/WorkflowExecutionsPage')),
+                children: [
+                  {
+                    index: true,
+                    lazy: page(() => import('../pages/workflows/WorkflowExecutionsIndex')),
+                  },
+                  {
+                    path: ':executionId',
+                    lazy: page(() => import('../pages/executions/ExecutionDetailsPage')),
+                  },
+                ],
+              },
+            ],
           },
           {
-            path: 'members',
-            Component: MembersSettingsPage,
+            // Opens the run inside its workflow's executions tab.
+            path: 'executions/:executionId',
+            lazy: page(() => import('../pages/executions/ExecutionRedirect')),
+          },
+          {
+            path: 'settings',
+            lazy: page(() => import('../components/layouts/SettingsLayout')),
+            children: [
+              {
+                index: true,
+                loader: () => redirect('/settings/profile'),
+              },
+              {
+                path: 'profile',
+                lazy: page(() => import('../pages/settings/ProfileSettingsPage')),
+              },
+              {
+                path: 'workspace',
+                lazy: page(() => import('../pages/settings/WorkspaceSettingsPage')),
+              },
+              {
+                path: 'members',
+                lazy: page(() => import('../pages/settings/MembersSettingsPage')),
+              },
+            ],
           },
         ],
       },
+      {
+        path: '*',
+        lazy: page(() => import('../pages/NotFoundPage')),
+      },
     ],
-  },
-  {
-    path: '*',
-    Component: NotFoundPage,
   },
 ]
 

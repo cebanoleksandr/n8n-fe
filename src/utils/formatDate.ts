@@ -27,3 +27,30 @@ export function formatDay(date: string | Date, lng: string): string {
     year: sameYear ? undefined : 'numeric',
   }).format(value)
 }
+
+/** "Oct 13, 10:00:00": the date and time of a run, to the second. */
+export function formatDateTime(date: string | Date, lng: string): string {
+  const value = new Date(date)
+  const sameYear = value.getFullYear() === new Date().getFullYear()
+  return new Intl.DateTimeFormat(lng, {
+    month: 'short',
+    day: 'numeric',
+    year: sameYear ? undefined : 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).format(value)
+}
+
+/** "75ms", "31.644s", "1m 2.506s", "2h 5m": n8n's run time format. */
+export function formatDuration(ms: number): string {
+  // Rounded first, so 999.6ms reads "1s", not "1000ms".
+  const rounded = Math.max(0, Math.round(ms))
+  if (rounded < 1000) return `${rounded}ms`
+  const seconds = rounded / 1000
+  if (seconds < 60) return `${+seconds.toFixed(3)}s`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ${+(seconds % 60).toFixed(3)}s`
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+}

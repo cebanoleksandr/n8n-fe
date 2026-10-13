@@ -345,6 +345,8 @@ export interface StoredItem {
 export interface ExecutionSummary {
   id: string
   workflowId: string
+  /** The workflow's current name. */
+  workflowName: string
   workflowVersionId: string
   status: ExecutionStatus
   mode: ExecutionMode

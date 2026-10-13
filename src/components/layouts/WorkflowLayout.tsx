@@ -26,7 +26,12 @@ const WorkflowLayout = () => {
     { to: base, label: 'workflow.tabs.editor' },
     { to: `${base}/executions`, label: 'workflow.tabs.executions' },
   ]
-  const current = tabs.find((tab) => pathname === tab.to)?.to ?? false
+  // The executions tab also covers one run (/executions/:id).
+  const current = pathname.startsWith(`${base}/executions`)
+    ? `${base}/executions`
+    : pathname === base
+      ? base
+      : false
 
   return (
     <div className="h-full flex flex-col">

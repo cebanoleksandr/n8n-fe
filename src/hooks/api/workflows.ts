@@ -8,19 +8,25 @@ import { queryKeys } from '../../api/query-keys'
 import type {
   CreateWorkflowInput,
   ListWorkflowsParams,
+  Page,
   UpdateWorkflowInput,
   Workflow,
   WorkflowImport,
+  WorkflowSummary,
 } from '../../api/types'
 import { workflowsService } from '../../services/workflows.service'
 import type { QueryOptions } from './types'
 
-export function useWorkflows(params: ListWorkflowsParams = {}) {
+export function useWorkflows(
+  params: ListWorkflowsParams = {},
+  options: QueryOptions<Page<WorkflowSummary>> = {},
+) {
   return useQuery({
     queryKey: queryKeys.workflows.list(params),
     queryFn: () => workflowsService.list(params),
     // Keep the current page visible while the next one loads.
     placeholderData: keepPreviousData,
+    ...options,
   })
 }
 
