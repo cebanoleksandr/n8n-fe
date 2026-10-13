@@ -1,7 +1,7 @@
 import type {
   EvaluateExpressionInput,
   ListExecutionsParams,
-  PaginationParams,
+  ListWorkflowsParams,
 } from './types'
 
 /**
@@ -26,7 +26,7 @@ export const queryKeys = {
   workflows: {
     all: ['workflows'] as const,
     lists: ['workflows', 'list'] as const,
-    list: (params: PaginationParams) => ['workflows', 'list', params] as const,
+    list: (params: ListWorkflowsParams) => ['workflows', 'list', params] as const,
     detail: (id: string) => ['workflows', 'detail', id] as const,
     versions: (id: string) => ['workflows', 'detail', id, 'versions'] as const,
     version: (id: string, versionId: string) =>

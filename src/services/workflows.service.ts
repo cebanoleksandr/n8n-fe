@@ -2,7 +2,7 @@ import { api } from '../api/client'
 import type {
   CreateWorkflowInput,
   Page,
-  PaginationParams,
+  ListWorkflowsParams,
   TestWebhookListening,
   UpdateWorkflowInput,
   Workflow,
@@ -15,7 +15,7 @@ import type {
 
 export const workflowsService = {
   /** Newest first (by updatedAt). */
-  async list(params: PaginationParams = {}): Promise<Page<WorkflowSummary>> {
+  async list(params: ListWorkflowsParams = {}): Promise<Page<WorkflowSummary>> {
     const { data } = await api.get<Page<WorkflowSummary>>('/workflows', {
       params,
     })

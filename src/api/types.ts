@@ -236,6 +236,21 @@ export interface Workflow extends WorkflowSummary {
   graph: WorkflowGraph
 }
 
+export const WORKFLOW_SORTS = [
+  'updatedAt:desc',
+  'createdAt:desc',
+  'name:asc',
+  'name:desc',
+] as const
+export type WorkflowSort = (typeof WORKFLOW_SORTS)[number]
+
+export interface ListWorkflowsParams extends PaginationParams {
+  /** Case-insensitive part of the name. */
+  search?: string
+  /** Defaults to 'updatedAt:desc'. */
+  sort?: WorkflowSort
+}
+
 export interface CreateWorkflowInput {
   name: string
   graph?: WorkflowGraph

@@ -7,7 +7,7 @@ import {
 import { queryKeys } from '../../api/query-keys'
 import type {
   CreateWorkflowInput,
-  PaginationParams,
+  ListWorkflowsParams,
   UpdateWorkflowInput,
   Workflow,
   WorkflowImport,
@@ -15,7 +15,7 @@ import type {
 import { workflowsService } from '../../services/workflows.service'
 import type { QueryOptions } from './types'
 
-export function useWorkflows(params: PaginationParams = {}) {
+export function useWorkflows(params: ListWorkflowsParams = {}) {
   return useQuery({
     queryKey: queryKeys.workflows.list(params),
     queryFn: () => workflowsService.list(params),
