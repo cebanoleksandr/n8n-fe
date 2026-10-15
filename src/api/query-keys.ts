@@ -64,6 +64,7 @@ export const queryKeys = {
     nodeTypes: ['static', 'node-types'] as const,
     credentialTypes: ['static', 'credential-types'] as const,
     expressionReference: ['static', 'expression-reference'] as const,
+    webhookUrls: ['static', 'webhook-urls'] as const,
   },
 
   health: ['health'] as const,

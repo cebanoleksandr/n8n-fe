@@ -44,8 +44,14 @@ const BasePopup: FC<IProps> = ({
     const opener = document.activeElement as HTMLElement | null;
     panelRef.current?.focus();
 
+    // Only when focus is in this popup: Escape in a dropdown menu (rendered
+    // outside it) or in a popup opened on top must not close this one too.
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCloseRef.current();
+      if (e.key !== 'Escape') return;
+      const focused = document.activeElement;
+      if (focused === document.body || panelRef.current?.contains(focused)) {
+        onCloseRef.current();
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => {
@@ -80,9 +86,11 @@ const BasePopup: FC<IProps> = ({
                        sm:w-auto sm:min-w-120 sm:max-w-[90vw] max-h-[90vh] overflow-y-auto m-0
                        z-500 shadow-lg p-4 outline-none"
             style={{
-              backgroundColor: theme.palette.background.paper,
+              // CSS variables, not theme.palette: with color schemes the palette
+              // object holds the light values only.
+              backgroundColor: 'var(--mui-palette-background-paper)',
               borderRadius: theme.shape.borderRadius,
-              color: theme.palette.text.primary,
+              color: 'var(--mui-palette-text-primary)',
               ...style,
             }}
             initial={{ opacity: 0, scale: 0.5, y: -100 }}

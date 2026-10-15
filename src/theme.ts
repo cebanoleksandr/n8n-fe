@@ -101,6 +101,12 @@ const theme = createTheme({
   },
   shape: { borderRadius: 8 },
   components: {
+    // Small fields at 14px, like the rest of the UI (MUI's default is 16px).
+    MuiInputBase: {
+      styleOverrides: {
+        root: ({ ownerState }) => (ownerState.size === 'small' ? { fontSize: 14 } : {}),
+      },
+    },
     MuiButton: {
       defaultProps: { disableElevation: true },
     },

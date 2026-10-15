@@ -293,6 +293,12 @@ export interface WorkflowImport {
   pinData?: PinData
 }
 
+/** GET /webhooks/urls: a Webhook node answers at <base>/<path>. */
+export interface WebhookUrls {
+  production: string
+  test: string
+}
+
 export interface TestWebhookListening {
   webhooks: { nodeId: string; method: string; path: string }[]
   expiresInSeconds: number

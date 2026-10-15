@@ -18,7 +18,8 @@ createRoot(document.getElementById('root')!).render(
     <StyledEngineProvider enableCssLayer>
       <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
       <ThemeProvider theme={theme}>
-        <CssBaseline />
+        {/* color-scheme: native scrollbars and controls follow the theme. */}
+        <CssBaseline enableColorScheme />
         <Provider store={store}>
           <QueryClientProvider client={queryClient}>
             <App />

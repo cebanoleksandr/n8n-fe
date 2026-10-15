@@ -10,10 +10,9 @@ import StopCircleOutlinedIcon from '@mui/icons-material/StopCircleOutlined'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { type ExecutionStatus, isFinished } from '../../api/types'
-import { lastStepByNode } from '../../components/executions/executionData'
+import { canvasRunOf, lastStepByNode } from '../../components/executions/executionData'
 import ExecutionLogs from '../../components/executions/ExecutionLogs'
-import type { CanvasNodeStatus } from '../../components/workflow-canvas/CanvasNode'
-import WorkflowCanvas, { type CanvasRun } from '../../components/workflow-canvas/WorkflowCanvas'
+import WorkflowCanvas from '../../components/workflow-canvas/WorkflowCanvas'
 import {
   useCancelExecution,
   useExecution,
@@ -76,16 +75,7 @@ const ExecutionDetailsPage = () => {
   const errorStep = steps.findIndex((step) => step.status === 'error')
   const selectedStep = pickedStep ?? (errorStep >= 0 ? errorStep : steps.length ? steps.length - 1 : null)
 
-  const run = useMemo<CanvasRun>(() => {
-    const statuses = new Map<string, CanvasNodeStatus>()
-    const itemCounts = new Map<string, number>()
-    for (const [nodeId, index] of lastSteps) {
-      const step = steps[index]
-      statuses.set(nodeId, step.status)
-      step.output.forEach((items, output) => itemCounts.set(`${nodeId}:${output}`, items.length))
-    }
-    return { statuses, itemCounts }
-  }, [steps, lastSteps])
+  const run = useMemo(() => canvasRunOf(steps), [steps])
 
   const handleCancel = () => {
     if (!execution) return

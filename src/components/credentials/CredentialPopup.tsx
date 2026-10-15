@@ -21,6 +21,10 @@ interface IProps {
   onClose: () => void
   /** The credential to edit; absent to create one. */
   credentialId?: string
+  /** Creating: skip the type list (e.g. from a node that needs this type). */
+  initialType?: string
+  /** After a save, e.g. to select the new credential in a node. */
+  onSaved?: (credential: Credential) => void
 }
 
 const TypePicker: FC<{
@@ -77,12 +81,18 @@ const TypePicker: FC<{
 }
 
 /** Create (choose a type, then fill it in) or edit a credential. */
-const CredentialPopup: FC<IProps> = ({ isVisible, onClose, credentialId }) => {
+const CredentialPopup: FC<IProps> = ({
+  isVisible,
+  onClose,
+  credentialId,
+  initialType,
+  onSaved,
+}) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const titleId = useId()
 
-  const [chosenType, setChosenType] = useState<string | null>(null)
+  const [chosenType, setChosenType] = useState<string | null>(initialType ?? null)
   // A created OAuth2 credential stays open to be connected.
   const [savedId, setSavedId] = useState<string | null>(null)
 
@@ -91,7 +101,7 @@ const CredentialPopup: FC<IProps> = ({ isVisible, onClose, credentialId }) => {
   if (isVisible !== wasVisible) {
     setWasVisible(isVisible)
     if (isVisible) {
-      setChosenType(null)
+      setChosenType(initialType ?? null)
       setSavedId(null)
     }
   }
@@ -104,6 +114,7 @@ const CredentialPopup: FC<IProps> = ({ isVisible, onClose, credentialId }) => {
   const type = types.data?.find((item) => item.type === typeName)
 
   const handleSaved = (saved: Credential) => {
+    onSaved?.(saved)
     const savedType = types.data?.find((item) => item.type === saved.type)
     const connectNext =
       !id && savedType?.oauth2 && saved.data.grantType !== 'clientCredentials'
@@ -146,7 +157,7 @@ const CredentialPopup: FC<IProps> = ({ isVisible, onClose, credentialId }) => {
         credential={credential.data}
         onSaved={handleSaved}
         onCancel={onClose}
-        onBack={id ? undefined : () => setChosenType(null)}
+        onBack={id || initialType ? undefined : () => setChosenType(null)}
       />
     )
   }

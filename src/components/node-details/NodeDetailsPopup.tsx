@@ -1,0 +1,399 @@
+import { useId, useMemo, useState, type FC, type ReactNode } from 'react'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import IconButton from '@mui/material/IconButton'
+import InputBase from '@mui/material/InputBase'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
+import Typography from '@mui/material/Typography'
+import CloseIcon from '@mui/icons-material/Close'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import { useTranslation } from 'react-i18next'
+import type { Execution, NodeTypeDescription, WorkflowGraph, WorkflowNode } from '../../api/types'
+import { defaultsOf, isPropertyVisible } from '../../utils/properties'
+import { nodeInputs, outputsByNodeName } from '../executions/executionData'
+import ItemsView from '../executions/ItemsView'
+import BasePopup from '../popups/BasePopup'
+import { nodeIcon } from '../workflow-canvas/nodeIcons'
+import NodeCredentials from './NodeCredentials'
+import NodeSettings from './NodeSettings'
+import ParameterField from './ParameterField'
+import WebhookUrls, { type TestWebhookControl } from './WebhookUrls'
+
+interface IProps {
+  node: WorkflowNode
+  description: NodeTypeDescription | undefined
+  graph: WorkflowGraph
+  /** The editor's last run, for input and output data. */
+  execution: Execution | undefined
+  /** This node is executing right now. */
+  isRunning: boolean
+  canEdit: boolean
+  onChange: (node: WorkflowNode) => void
+  /** Renames through the editor, which also updates expressions using the name. */
+  onRename: (name: string) => void
+  /** Runs this node and what it depends on (a Webhook node listens instead). */
+  onTest: () => void
+  /** Webhook nodes: listening on the test URL. */
+  testWebhook?: TestWebhookControl
+  onClose: () => void
+}
+
+/** Header height shared by the three columns, so their tops line up. */
+const HEADER_HEIGHT = 48
+
+const Column: FC<{ title: ReactNode; extra?: ReactNode; children: ReactNode; className?: string }> = ({
+  title,
+  extra,
+  children,
+  className = '',
+}) => (
+  <Box className={`flex flex-col min-h-0 min-w-0 ${className}`} sx={{ bgcolor: 'background.default' }}>
+    <Box
+      className="shrink-0 flex items-center justify-between gap-2 px-4"
+      sx={{ height: HEADER_HEIGHT, borderBottom: 1, borderColor: 'divider' }}
+    >
+      <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1.5, lineHeight: 1, fontWeight: 600 }}>
+        {title}
+      </Typography>
+      {extra}
+    </Box>
+    <div className="flex-1 min-h-0 overflow-auto p-4">{children}</div>
+  </Box>
+)
+
+/** Centered hint in an empty column. */
+const EmptyState: FC<{ children: ReactNode }> = ({ children }) => (
+  <div className="h-full flex flex-col items-center justify-center gap-3 text-center px-4">{children}</div>
+)
+
+/** n8n's node view: input on the left, settings in the middle, output on the right. */
+const NodeDetailsPopup: FC<IProps> = ({
+  node,
+  description,
+  graph,
+  execution,
+  isRunning,
+  canEdit,
+  onChange,
+  onRename,
+  onTest,
+  testWebhook,
+  onClose,
+}) => {
+  const { t } = useTranslation()
+  const titleId = useId()
+  const [tab, setTab] = useState<'parameters' | 'settings'>('parameters')
+  const [outputTab, setOutputTab] = useState(0)
+  const [name, setName] = useState(node.name)
+  const [nameError, setNameError] = useState<string | null>(null)
+
+  const steps = useMemo(() => execution?.steps ?? [], [execution])
+  const isTrigger = description?.group === 'trigger'
+  const inputs = useMemo(() => nodeInputs(steps, graph, node.id), [steps, graph, node.id])
+  const step = steps.findLast((s) => s.nodeId === node.id)
+  const outputs = step?.output ?? []
+  const shownOutput = Math.min(outputTab, Math.max(0, outputs.length - 1))
+
+  // What expressions in the fields are previewed against.
+  const context = useMemo(
+    () => ({ json: inputs[0]?.items[0]?.json, nodes: outputsByNodeName(steps) }),
+    [inputs, steps],
+  )
+
+  // A missing parameter means its default, as the backend reads it: show it,
+  // and judge displayOptions by it.
+  const parameters = useMemo(
+    () => ({ ...defaultsOf(description?.properties ?? []), ...node.parameters }),
+    [description, node.parameters],
+  )
+  const setParameter = (key: string, value: unknown) =>
+    onChange({ ...node, parameters: { ...node.parameters, [key]: value } })
+
+  const commitName = () => {
+    const next = name.trim()
+    if (next === node.name) return setNameError(null)
+    if (!next) return setNameError(t('nodeDetails.nameRequired'))
+    if (graph.nodes.some((other) => other.id !== node.id && other.name === next)) {
+      return setNameError(t('nodeDetails.nameTaken'))
+    }
+    setNameError(null)
+    onRename(next)
+  }
+
+  const credentialSlots = (description?.credentials ?? []).filter((slot) =>
+    isPropertyVisible(slot, parameters),
+  )
+
+  const renderOutput = () => {
+    if (isRunning) {
+      return (
+        <EmptyState>
+          <CircularProgress size={28} />
+          <Typography variant="body2" color="text.secondary">
+            {t('nodeDetails.executing')}
+          </Typography>
+        </EmptyState>
+      )
+    }
+    if (!step) {
+      return (
+        <EmptyState>
+          <Typography variant="body2" color="text.secondary" className="max-w-xs">
+            {t('nodeDetails.noOutput')}
+          </Typography>
+          {canEdit && (
+            <Button variant="outlined" startIcon={<PlayArrowIcon />} onClick={onTest}>
+              {t('nodeDetails.test')}
+            </Button>
+          )}
+        </EmptyState>
+      )
+    }
+    if (step.error) {
+      return (
+        <Alert severity="error">
+          <AlertTitle>{step.error.name}</AlertTitle>
+          {step.error.message}
+        </Alert>
+      )
+    }
+    return (
+      <>
+        {outputs.length > 1 && (
+          <Tabs
+            value={shownOutput}
+            onChange={(_, value: number) => setOutputTab(value)}
+            variant="scrollable"
+            sx={{ minHeight: 36, mb: 1 }}
+          >
+            {outputs.map((items, index) => (
+              <Tab
+                key={index}
+                value={index}
+                sx={{ minHeight: 36, py: 0 }}
+                label={`${description?.outputs[index] || t('executions.logs.outputN', { index: index + 1 })} (${items.length})`}
+              />
+            ))}
+          </Tabs>
+        )}
+        <ItemsView items={outputs[shownOutput] ?? []} />
+      </>
+    )
+  }
+
+  return (
+    <BasePopup
+      isVisible
+      onClose={onClose}
+      labelledBy={titleId}
+      style={{
+        width: '95vw',
+        maxWidth: '95vw',
+        height: '90vh',
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        className="shrink-0 flex items-center gap-3 px-4 py-3"
+        sx={{ borderBottom: 1, borderColor: 'divider' }}
+      >
+        <Box
+          className="shrink-0 flex items-center justify-center rounded-lg"
+          sx={{ width: 40, height: 40, bgcolor: 'action.hover', color: 'text.primary', '& svg': { fontSize: 24 } }}
+        >
+          {nodeIcon(node.type)}
+        </Box>
+        <div className="min-w-0 flex-1">
+          <InputBase
+            id={titleId}
+            value={name}
+            readOnly={!canEdit}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={commitName}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+              if (e.key === 'Escape') {
+                // Undo the rename instead of closing the panel.
+                e.stopPropagation()
+                setName(node.name)
+                setNameError(null)
+              }
+            }}
+            inputProps={{ maxLength: 128, 'aria-label': t('nodeDetails.name') }}
+            sx={{
+              fontSize: 16,
+              fontWeight: 600,
+              maxWidth: 480,
+              width: '100%',
+              px: 0.75,
+              ml: -0.75,
+              borderRadius: 1,
+              border: 1,
+              borderColor: 'transparent',
+              '&:hover': canEdit ? { borderColor: 'divider' } : undefined,
+              '&.Mui-focused': { borderColor: 'primary.main' },
+            }}
+          />
+          <Typography variant="caption" color={nameError ? 'error' : 'text.secondary'} component="div">
+            {nameError ?? description?.displayName ?? node.type}
+          </Typography>
+        </div>
+        {canEdit && (
+          <Button
+            variant="contained"
+            startIcon={<PlayArrowIcon />}
+            onClick={onTest}
+            loading={isRunning}
+            loadingPosition="start"
+            disabled={node.disabled}
+          >
+            {t('nodeDetails.test')}
+          </Button>
+        )}
+        <IconButton onClick={onClose} aria-label={t('common.close')}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      <div className="flex-1 min-h-0 flex">
+        {!isTrigger && (
+          <Column
+            title={t('executions.logs.input')}
+            className="w-[30%]"
+            extra={
+              inputs.length > 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  {t('executions.items', {
+                    count: inputs.reduce((sum, input) => sum + input.items.length, 0),
+                  })}
+                </Typography>
+              )
+            }
+          >
+            {inputs.length === 0 ? (
+              <EmptyState>
+                <Typography variant="body2" color="text.secondary" className="max-w-xs">
+                  {t('nodeDetails.noInput')}
+                </Typography>
+              </EmptyState>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {inputs.map((input, index) => (
+                  <div key={index} className="flex flex-col gap-2">
+                    {inputs.length > 1 && (
+                      <Typography variant="caption" color="text.secondary">
+                        {t('executions.logs.from', { node: input.fromNodeName })}
+                      </Typography>
+                    )}
+                    <ItemsView
+                      items={input.items}
+                      // One input: $json. Several: name the node they came from.
+                      dragExpression={
+                        canEdit
+                          ? inputs.length > 1
+                            ? (path) => `{{ $(${JSON.stringify(input.fromNodeName)}).item.json${path} }}`
+                            : (path) => `{{ $json${path} }}`
+                          : undefined
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Column>
+        )}
+
+        <Box
+          className="flex-1 min-w-0 flex flex-col min-h-0"
+          sx={{ borderLeft: isTrigger ? 0 : 1, borderRight: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
+        >
+          <Tabs
+            value={tab}
+            onChange={(_, value) => setTab(value)}
+            sx={{
+              px: 2,
+              minHeight: HEADER_HEIGHT,
+              borderBottom: 1,
+              borderColor: 'divider',
+              '& .MuiTab-root': { minHeight: HEADER_HEIGHT },
+            }}
+          >
+            <Tab value="parameters" label={t('nodeDetails.parameters')} />
+            <Tab value="settings" label={t('nodeDetails.settingsTab')} />
+          </Tabs>
+          {/* Viewers see the settings but can't change them. */}
+          <div className="flex-1 min-h-0 overflow-auto px-6 py-5" inert={!canEdit}>
+            {/* Fields stay readable on wide screens instead of stretching. */}
+            <div className="max-w-2xl mx-auto">
+            {tab === 'parameters' ? (
+              <div className="flex flex-col gap-5">
+                {description?.description && (
+                  <Typography variant="body2" color="text.secondary">
+                    {description.description}
+                  </Typography>
+                )}
+                {node.type === 'core.webhook' && testWebhook && (
+                  <WebhookUrls
+                    method={String(parameters.method ?? 'POST')}
+                    path={String(parameters.path ?? '')}
+                    canEdit={canEdit}
+                    testWebhook={testWebhook}
+                  />
+                )}
+                {credentialSlots.length > 0 && (
+                  <NodeCredentials
+                    descriptions={credentialSlots}
+                    value={node.credentials}
+                    onChange={(credentials) => onChange({ ...node, credentials })}
+                  />
+                )}
+                {description?.properties
+                  .filter((property) => isPropertyVisible(property, parameters))
+                  .map((property) => (
+                    <ParameterField
+                      key={property.name}
+                      property={property}
+                      value={parameters[property.name]}
+                      onChange={(value) => setParameter(property.name, value)}
+                      context={context}
+                      nodeType={node.type}
+                    />
+                  ))}
+                {description && description.properties.length === 0 && (
+                  <Typography color="text.secondary">{t('nodeDetails.noParameters')}</Typography>
+                )}
+                {!description && <Alert severity="warning">{t('nodeDetails.unknownType', { type: node.type })}</Alert>}
+              </div>
+            ) : (
+              <NodeSettings node={node} onChange={(patch) => onChange({ ...node, ...patch })} />
+            )}
+            </div>
+          </div>
+        </Box>
+
+        <Column
+          title={t('executions.logs.output')}
+          className={isTrigger ? 'w-[40%]' : 'w-[30%]'}
+          extra={
+            step && !step.error && (
+              <Typography variant="caption" color="text.secondary">
+                {t('executions.items', { count: outputs[shownOutput]?.length ?? 0 })}
+              </Typography>
+            )
+          }
+        >
+          {renderOutput()}
+        </Column>
+      </div>
+    </BasePopup>
+  )
+}
+
+export default NodeDetailsPopup

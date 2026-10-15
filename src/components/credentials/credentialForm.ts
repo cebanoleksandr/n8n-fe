@@ -1,20 +1,12 @@
 import type { FieldError, Resolver } from 'react-hook-form'
-import type { Credential, CredentialTypeDescription, PropertySchema } from '../../api/types'
+import type { Credential, CredentialTypeDescription } from '../../api/types'
+import { isEmptyValue as isEmpty, isPropertyVisible } from '../../utils/properties'
+
+export { isPropertyVisible }
 
 export interface CredentialFormValues {
   name: string
   data: Record<string, unknown>
-}
-
-/** displayOptions.show: every listed field must hold one of its values. */
-export function isPropertyVisible(property: PropertySchema, data: Record<string, unknown>) {
-  const show = property.displayOptions?.show
-  if (!show) return true
-  return Object.entries(show).every(([field, values]) => values.includes(data[field]))
-}
-
-function isEmpty(value: unknown) {
-  return value === undefined || value === null || value === ''
 }
 
 /** Defaults of the type, overlaid with a saved credential's (non-secret) data. */

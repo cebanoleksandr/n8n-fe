@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
+import AddIcon from '@mui/icons-material/Add'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
 import BoltIcon from '@mui/icons-material/Bolt'
@@ -21,6 +22,12 @@ export type CanvasNodeData = {
   /** Absent: did not run (dimmed when the canvas shows a run). */
   status?: CanvasNodeStatus
   dimmed?: boolean
+  /** Handles can be connected (the editor). */
+  editable?: boolean
+  /** Per output: nothing is connected to it yet. */
+  freeOutputs?: boolean[]
+  /** The "+" after a free output. */
+  onAddFrom?: (outputIndex: number) => void
 }
 
 export type CanvasNodeType = Node<CanvasNodeData, 'workflowNode'>
@@ -97,7 +104,7 @@ const CanvasNode = ({ data, selected }: NodeProps<CanvasNodeType>) => {
             id={`in-${i}`}
             type="target"
             position={Position.Left}
-            isConnectable={false}
+            isConnectable={!!data.editable}
             style={{ ...handleStyle, top: handleTop(i, data.inputs) }}
           />
         ))}
@@ -107,7 +114,7 @@ const CanvasNode = ({ data, selected }: NodeProps<CanvasNodeType>) => {
             id={`out-${i}`}
             type="source"
             position={Position.Right}
-            isConnectable={false}
+            isConnectable={!!data.editable}
             style={{ ...handleStyle, top: handleTop(i, data.outputs.length) }}
           >
             {label && (
@@ -118,6 +125,47 @@ const CanvasNode = ({ data, selected }: NodeProps<CanvasNodeType>) => {
               >
                 {label}
               </Typography>
+            )}
+
+            {data.onAddFrom && data.freeOutputs?.[i] && (
+              // Part of the handle, as in n8n: dragging the stub draws a
+              // connection, clicking "+" adds the next node.
+              <Box
+                className="absolute flex items-center"
+                sx={{ left: '100%', top: '50%', transform: 'translateY(-50%)', cursor: 'crosshair' }}
+              >
+                {/* A taller hit area than the 2px line it shows. */}
+                <Box className="flex items-center" sx={{ width: 28, height: 14 }}>
+                  <Box sx={{ width: '100%', borderTop: 2, borderColor: 'text.disabled' }} />
+                </Box>
+                <Box
+                  component="button"
+                  type="button"
+                  aria-label="+"
+                  // Keep the press from reaching the handle: no connection drag.
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    data.onAddFrom?.(i)
+                  }}
+                  className="flex items-center justify-center cursor-pointer"
+                  sx={{
+                    width: 22,
+                    height: 22,
+                    p: 0,
+                    borderRadius: 1,
+                    border: 1,
+                    borderColor: 'text.disabled',
+                    bgcolor: 'background.paper',
+                    color: 'text.secondary',
+                    '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
+                    '& svg': { fontSize: '16px !important' },
+                  }}
+                >
+                  <AddIcon />
+                </Box>
+              </Box>
             )}
           </Handle>
         ))}

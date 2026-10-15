@@ -10,7 +10,11 @@ import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { Link as RouterLink, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
-import { useCurrentMembership, useSetWorkflowActive, useWorkflow } from '../../hooks/api'
+import { useCurrentMembership, useHasRole, useSetWorkflowActive, useWorkflow } from '../../hooks/api'
+import { setAlertAC } from '../../storage/alertSlice'
+import { useAppDispatch } from '../../storage/hooks'
+import WorkflowMenu from '../workflow-editor/WorkflowMenu'
+import WorkflowNameField from '../workflow-editor/WorkflowNameField'
 
 /** The editor and the workflow's own executions, under a shared header. */
 const WorkflowLayout = () => {
@@ -18,6 +22,8 @@ const WorkflowLayout = () => {
   const { workflowId } = useParams()
   const { pathname } = useLocation()
   const membership = useCurrentMembership()
+  const canEdit = useHasRole('editor')
+  const dispatch = useAppDispatch()
   const { data: workflow, isPending, isError } = useWorkflow(workflowId)
   const setActive = useSetWorkflowActive()
 
@@ -40,18 +46,23 @@ const WorkflowLayout = () => {
         className="shrink-0 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 h-14"
         sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
       >
-        <Breadcrumbs className="min-w-0">
-          <Link component={RouterLink} to="/workflows" underline="hover" color="text.secondary">
-            {membership?.workspaceName ?? t('nav.overview')}
-          </Link>
-          {isPending ? (
-            <Skeleton width={120} />
-          ) : (
-            <Typography color="text.primary" noWrap>
-              {isError ? t('workflow.notFound') : workflow.name}
-            </Typography>
-          )}
-        </Breadcrumbs>
+        <div className="flex items-center gap-1 min-w-0">
+          <Breadcrumbs className="min-w-0">
+            <Link component={RouterLink} to="/workflows" underline="hover" color="text.secondary">
+              {membership?.workspaceName ?? t('nav.overview')}
+            </Link>
+            {isPending ? (
+              <Skeleton width={120} />
+            ) : isError ? (
+              <Typography color="text.primary" noWrap>
+                {t('workflow.notFound')}
+              </Typography>
+            ) : (
+              <WorkflowNameField workflow={workflow} canEdit={canEdit} />
+            )}
+          </Breadcrumbs>
+          {workflow && <WorkflowMenu workflow={workflow} canEdit={canEdit} />}
+        </div>
 
         <Tabs value={current} sx={{ minHeight: 0 }}>
           {tabs.map((tab) => (
@@ -77,8 +88,16 @@ const WorkflowLayout = () => {
                 control={
                   <Switch
                     checked={workflow.active}
-                    disabled={setActive.isPending}
-                    onChange={(_, active) => setActive.mutate({ id: workflow.id, active })}
+                    disabled={!canEdit || setActive.isPending}
+                    onChange={(_, active) =>
+                      setActive.mutate(
+                        { id: workflow.id, active },
+                        {
+                          onError: () =>
+                            dispatch(setAlertAC({ text: 'workflows.toggleFailed', mode: 'error' })),
+                        },
+                      )
+                    }
                   />
                 }
               />

@@ -14,7 +14,8 @@
     "copy": "Copy",
     "copied": "Copied to clipboard",
     "updated": "Last updated {{when}}",
-    "created": "Created {{when}}"
+    "created": "Created {{when}}",
+    "close": "Close"
   },
   "nav": {
     "workflows": "Workflows",
@@ -276,6 +277,89 @@
       "tries_other": "{{count}} tries",
       "errorItem": "At item {{index}}",
       "outputN": "Output {{index}}"
+    }
+  },
+  "editor": {
+    "loadFailed": "Couldn't load the workflow",
+    "addFirstStep": "Add first step…",
+    "addNode": "Add node",
+    "save": "Save",
+    "saved": "Saved",
+    "logs": "Logs",
+    "noRunYet": "Execute the workflow to see its logs here.",
+    "name": "Workflow name",
+    "rename": "Click to rename",
+    "renameFailed": "Couldn't rename the workflow",
+    "run": {
+      "execute": "Execute workflow",
+      "running": "Executing…",
+      "succeeded": "Workflow executed successfully",
+      "failed": "Workflow execution failed",
+      "listen": "Listen for test event",
+      "stopListening": "Waiting for a request — stop"
+    },
+    "unsaved": {
+      "title": "Leave without saving?",
+      "text": "Your changes to this workflow will be lost.",
+      "leave": "Leave"
+    },
+    "groups": {
+      "action": "Actions",
+      "transform": "Data transformation",
+      "flow": "Flow",
+      "trigger": "Triggers"
+    },
+    "picker": {
+      "triggerTitle": "What triggers this workflow?",
+      "triggerSubtitle": "A trigger is a step that starts your workflow",
+      "nextTitle": "What happens next?",
+      "nextSubtitle": "Pick the step to add",
+      "search": "Search nodes…",
+      "noResults": "No matching nodes"
+    },
+    "deleteConnection": "Delete connection"
+  },
+  "nodeDetails": {
+    "name": "Node name",
+    "nameRequired": "The name is required",
+    "nameTaken": "Another node already has this name",
+    "test": "Test step",
+    "executing": "Executing…",
+    "noOutput": "Execute this step to see its output.",
+    "noInput": "No input yet: execute the previous nodes, or test this step.",
+    "parameters": "Parameters",
+    "settingsTab": "Settings",
+    "noParameters": "This node has no parameters.",
+    "unknownType": "Unknown node type \"{{type}}\"",
+    "required": "Required",
+    "result": "Result:",
+    "addItem": "Add to {{name}}",
+    "removeItem": "Remove",
+    "credentialFor": "Credential: {{type}}",
+    "credentialMissing": "This credential no longer exists. Pick another one.",
+    "createCredential": "Create new credential",
+    "none": "None",
+    "settings": {
+      "disabled": "Disabled",
+      "disabledHint": "The workflow skips this node and passes its input on.",
+      "continueOnFail": "Continue on fail",
+      "continueOnFailHint": "An error does not stop the workflow; the node outputs the error instead.",
+      "retryOnFail": "Retry on fail",
+      "retryOnFailHint": "Try again when the node fails.",
+      "maxTries": "Max tries",
+      "waitBetweenTries": "Wait between tries (ms)"
+    },
+    "dragHint": "Drag into a parameter to use this field",
+    "webhook": {
+      "title": "Webhook URLs",
+      "test": "Test URL",
+      "production": "Production URL",
+      "setPath": "Set a path to get the URL.",
+      "testHint": "Listen, then send one request here: it runs the saved workflow and shows the result in the editor.",
+      "productionHint": "Answers only while the workflow is active.",
+      "listen": "Listen for test event",
+      "waiting": "Waiting for a request… {{seconds}} s",
+      "stop": "Stop"
     }
   }
 }
