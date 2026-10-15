@@ -27,6 +27,7 @@ import {
 import { setAlertAC } from '../../storage/alertSlice'
 import { useAppDispatch } from '../../storage/hooks'
 import { downloadJson } from '../../utils/downloadJson'
+import { apiErrorMessage } from '../../utils/apiErrorMessage'
 import { formatDay, formatRelative } from '../../utils/formatDate'
 import ConfirmPopup from '../popups/ConfirmPopup'
 
@@ -60,8 +61,9 @@ const WorkflowCard: FC<IProps> = ({ workflow }) => {
     setActive.mutate(
       { id: workflow.id, active: !workflow.active },
       {
-        onError: () =>
-          dispatch(setAlertAC({ text: 'workflows.toggleFailed', mode: 'error' })),
+        // The server says why, e.g. no Webhook or Schedule trigger to activate.
+        onError: (error) =>
+          dispatch(setAlertAC({ text: apiErrorMessage(error, t), mode: 'error' })),
       },
     )
   }

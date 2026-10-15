@@ -26,6 +26,9 @@ void i18n
       caches: ['localStorage'],
     },
     interpolation: { escapeValue: false },
+    // No namespaces here: a ":" in a key or a server message (shown through
+    // t() by CustomAlert) must stay text, not split off a namespace.
+    nsSeparator: false,
   })
 
 export default i18n

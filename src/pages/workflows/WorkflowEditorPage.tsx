@@ -35,6 +35,9 @@ import NodePicker from '../../components/workflow-editor/NodePicker'
 import { useEditorRun } from '../../components/workflow-editor/useEditorRun'
 import { useTestWebhook } from '../../components/workflow-editor/useTestWebhook'
 import { useHasRole, useNodeTypes, useUpdateWorkflow, useWorkflow } from '../../hooks/api'
+import { workflowsService } from '../../services/workflows.service'
+
+const AUTOSAVE_DELAY_MS = 2000
 
 // Opened on double-click only; it brings CodeMirror, so it loads then.
 const NodeDetailsPopup = lazy(() => import('../../components/node-details/NodeDetailsPopup'))
@@ -71,6 +74,8 @@ const WorkflowEditorPage = () => {
   const [picker, setPicker] = useState<PickerTarget | null>(null)
   const [pickerDismissed, setPickerDismissed] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  // The last graph the server refused: autosave waits for the next change.
+  const [failedGraph, setFailedGraph] = useState<WorkflowGraph | null>(null)
   const [logsOpen, setLogsOpen] = useState(false)
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
   // The node whose settings are open (double-click on the canvas).
@@ -136,10 +141,12 @@ const WorkflowEditorPage = () => {
       // Edits made while saving stay unsaved.
       setDraft((current) => current && { ...current, saved: sent })
       setSaveError(null)
+      setFailedGraph(null)
       return true
     } catch (error) {
       // Shown on the canvas: graph issues can be long, and alerts translate keys.
       setSaveError(getErrorMessage(error))
+      setFailedGraph(sent)
       return false
     }
   }
@@ -183,16 +190,48 @@ const WorkflowEditorPage = () => {
     return () => window.removeEventListener('keydown', listener)
   }, [])
 
-  // Closing the tab with unsaved changes asks the browser's own question.
+  // Autosave: a moment after the last change, like a document editor.
+  // A graph the server refused is not retried until it changes again.
+  const autosave = useEffectEvent(() => void save())
+  const pendingGraph = draft?.graph
   useEffect(() => {
-    if (!isDirty) return
-    const listener = (event: BeforeUnloadEvent) => event.preventDefault()
-    window.addEventListener('beforeunload', listener)
-    return () => window.removeEventListener('beforeunload', listener)
-  }, [isDirty])
+    if (!canEdit || !isDirty || update.isPending || pendingGraph === failedGraph) return
+    const timer = setTimeout(autosave, AUTOSAVE_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [canEdit, isDirty, update.isPending, pendingGraph, failedGraph])
 
-  // Leaving within the app asks ours.
-  const blocker = useBlocker(isDirty)
+  // Closing or reloading the tab within that moment: send the last changes
+  // with a request that outlives the page. Only a graph the server already
+  // refused makes the browser ask, since sending it again would fail too.
+  useEffect(() => {
+    if (!canEdit || !isDirty || !pendingGraph) return
+    const refused = pendingGraph === failedGraph
+    const onPageHide = () => {
+      if (!refused) workflowsService.saveGraphOnUnload(workflowId, pendingGraph)
+    }
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (refused) event.preventDefault()
+    }
+    window.addEventListener('pagehide', onPageHide)
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => {
+      window.removeEventListener('pagehide', onPageHide)
+      window.removeEventListener('beforeunload', onBeforeUnload)
+    }
+  }, [canEdit, isDirty, pendingGraph, failedGraph, workflowId])
+
+  // Leaving within the app: save first, and ask only if that fails.
+  const blocker = useBlocker(canEdit && isDirty)
+  const onBlocked = useEffectEvent(async () => {
+    if (await save()) blocker.proceed?.()
+  })
+  useEffect(() => {
+    if (blocker.state !== 'blocked') return
+    // Saving updates state: run it as a callback, not during the effect.
+    const timer = setTimeout(() => void onBlocked(), 0)
+    return () => clearTimeout(timer)
+  }, [blocker.state])
+  const saveRefused = !!failedGraph && failedGraph === pendingGraph
 
   const execution = editorRun.execution
   const run = useMemo(
@@ -264,13 +303,23 @@ const WorkflowEditorPage = () => {
 
           {canEdit && (
             <div className="absolute top-3 right-3 flex items-start gap-2">
+              {/* Saves by itself; a click (or Ctrl+S) saves right away. */}
               <Button
-                variant={isDirty ? 'contained' : 'outlined'}
-                disabled={!isDirty}
+                variant="outlined"
+                color={saveRefused ? 'error' : 'inherit'}
+                disabled={!isDirty || update.isPending}
                 onClick={() => void save()}
-                loading={update.isPending}
+                sx={{ bgcolor: 'background.paper' }}
               >
-                {t(isDirty ? 'editor.save' : 'editor.saved')}
+                {t(
+                  update.isPending
+                    ? 'editor.saving'
+                    : saveRefused
+                      ? 'editor.saveFailed'
+                      : isDirty
+                        ? 'editor.save'
+                        : 'editor.saved',
+                )}
               </Button>
               {!showPicker && (
                 <Tooltip title={t('editor.addNode')} placement="left">
@@ -404,7 +453,8 @@ const WorkflowEditorPage = () => {
       )}
 
       <ConfirmPopup
-        isVisible={blocker.state === 'blocked'}
+        // Only when saving on the way out failed.
+        isVisible={blocker.state === 'blocked' && saveRefused && !update.isPending}
         onClose={() => blocker.reset?.()}
         onConfirm={() => blocker.proceed?.()}
         title={t('editor.unsaved.title')}

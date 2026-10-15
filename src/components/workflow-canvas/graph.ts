@@ -48,7 +48,11 @@ export function createNode(
     type: description.type,
     typeVersion: description.version,
     position: [Math.round(position[0]), Math.round(position[1])],
-    parameters: defaultsOf(description.properties),
+    parameters: {
+      ...defaultsOf(description.properties),
+      // A webhook is reachable right away, as in n8n: a random, unique path.
+      ...(description.type === 'core.webhook' && { path: crypto.randomUUID() }),
+    },
   }
 }
 

@@ -38,6 +38,8 @@ interface IProps {
   code?: boolean
   minRows?: number
   readOnly?: boolean
+  /** Px; omit for the default (480 for code, 240 otherwise), null to grow freely. */
+  maxHeight?: number | null
 }
 
 // Theme colors, so the highlighting follows light and dark mode.
@@ -55,7 +57,7 @@ const highlightStyle = HighlightStyle.define([
  * The editor's own look. It has to be an EditorView theme: CodeMirror's
  * stylesheet is unlayered and would beat MUI's sx (in the "mui" layer).
  */
-function editorTheme({ mono, minRows, maxHeight }: { mono: boolean; minRows: number; maxHeight: number }) {
+function editorTheme({ mono, minRows, maxHeight }: { mono: boolean; minRows: number; maxHeight: number | null }) {
   return EditorView.theme({
     '&': { backgroundColor: 'transparent', borderRadius: 'inherit', overflow: 'hidden' },
     '&.cm-focused': { outline: 'none' },
@@ -65,7 +67,7 @@ function editorTheme({ mono, minRows, maxHeight }: { mono: boolean; minRows: num
       lineHeight: `${LINE_HEIGHT}px`,
       // One row: 36px + borders, the height of MUI's small fields at 14px.
       minHeight: `${minRows * LINE_HEIGHT + 16}px`,
-      maxHeight: `${maxHeight}px`,
+      maxHeight: maxHeight === null ? 'none' : `${maxHeight}px`,
     },
     '.cm-content': { padding: '8px 0', caretColor: 'var(--mui-palette-text-primary)' },
     '.cm-line': { padding: '0 12px' },
@@ -157,6 +159,7 @@ const CodeEditor: FC<IProps> = ({
   code = false,
   minRows = 1,
   readOnly = false,
+  maxHeight,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
@@ -189,7 +192,11 @@ const CodeEditor: FC<IProps> = ({
           placeholderExtension(placeholder ?? ''),
           code ? [lineNumbers(), highlightActiveLine()] : [],
           expressions ? expressionHighlight : [],
-          editorTheme({ mono: code || language !== 'text', minRows, maxHeight: code ? 480 : 240 }),
+          editorTheme({
+            mono: code || language !== 'text',
+            minRows,
+            maxHeight: maxHeight === undefined ? (code ? 480 : 240) : maxHeight,
+          }),
           tooltips({ parent: document.body }),
           tooltipTheme,
           autocompletion({

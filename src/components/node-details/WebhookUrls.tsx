@@ -30,6 +30,8 @@ interface IProps {
   path: string
   canEdit: boolean
   testWebhook: TestWebhookControl
+  /** Fills an empty path with a random one. */
+  onGeneratePath: () => void
 }
 
 /** Seconds left until `until`, ticking. */
@@ -44,7 +46,7 @@ function useSecondsLeft(until: number | null) {
 }
 
 /** The Webhook node's test and production URLs, and "Listen for test event". */
-const WebhookUrls: FC<IProps> = ({ method, path, canEdit, testWebhook }) => {
+const WebhookUrls: FC<IProps> = ({ method, path, canEdit, testWebhook, onGeneratePath }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const urls = useWebhookUrls()
@@ -102,9 +104,16 @@ const WebhookUrls: FC<IProps> = ({ method, path, canEdit, testWebhook }) => {
           </Tooltip>
         </div>
       ) : (
-        <Typography variant="body2" color="text.secondary">
-          {t('nodeDetails.webhook.setPath')}
-        </Typography>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Typography variant="body2" color="text.secondary">
+            {t('nodeDetails.webhook.setPath')}
+          </Typography>
+          {canEdit && (
+            <Button size="small" variant="outlined" onClick={onGeneratePath}>
+              {t('nodeDetails.webhook.generatePath')}
+            </Button>
+          )}
+        </div>
       )}
 
       <Typography variant="caption" color="text.secondary">

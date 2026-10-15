@@ -7,12 +7,15 @@ import Skeleton from '@mui/material/Skeleton'
 import Switch from '@mui/material/Switch'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { Link as RouterLink, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
 import { useCurrentMembership, useHasRole, useSetWorkflowActive, useWorkflow } from '../../hooks/api'
 import { setAlertAC } from '../../storage/alertSlice'
 import { useAppDispatch } from '../../storage/hooks'
+import { canActivate } from '../../utils/activation'
+import { apiErrorMessage } from '../../utils/apiErrorMessage'
 import WorkflowMenu from '../workflow-editor/WorkflowMenu'
 import WorkflowNameField from '../workflow-editor/WorkflowNameField'
 
@@ -25,6 +28,7 @@ const WorkflowLayout = () => {
   const canEdit = useHasRole('editor')
   const dispatch = useAppDispatch()
   const { data: workflow, isPending, isError } = useWorkflow(workflowId)
+  const activatable = !!workflow && canActivate(workflow.graph)
   const setActive = useSetWorkflowActive()
 
   const base = `/workflows/${workflowId}`
@@ -82,25 +86,31 @@ const WorkflowLayout = () => {
           {workflow && (
             <>
               <Chip size="small" variant="outlined" label={`v${workflow.version}`} />
-              <FormControlLabel
-                label={t(workflow.active ? 'workflow.active' : 'workflow.inactive')}
-                labelPlacement="start"
-                control={
-                  <Switch
-                    checked={workflow.active}
-                    disabled={!canEdit || setActive.isPending}
-                    onChange={(_, active) =>
-                      setActive.mutate(
-                        { id: workflow.id, active },
-                        {
-                          onError: () =>
-                            dispatch(setAlertAC({ text: 'workflows.toggleFailed', mode: 'error' })),
-                        },
-                      )
-                    }
-                  />
-                }
-              />
+              <Tooltip
+                // Explains a disabled switch; an active workflow can always be turned off.
+                title={!workflow.active && !activatable ? t('workflow.activateHint') : ''}
+              >
+                <FormControlLabel
+                  label={t(workflow.active ? 'workflow.active' : 'workflow.inactive')}
+                  labelPlacement="start"
+                  control={
+                    <Switch
+                      checked={workflow.active}
+                      disabled={!canEdit || setActive.isPending || (!workflow.active && !activatable)}
+                      onChange={(_, active) =>
+                        setActive.mutate(
+                          { id: workflow.id, active },
+                          {
+                            // The server says why (e.g. a webhook path taken by another workflow).
+                            onError: (error) =>
+                              dispatch(setAlertAC({ text: apiErrorMessage(error, t), mode: 'error' })),
+                          },
+                        )
+                      }
+                    />
+                  }
+                />
+              </Tooltip>
             </>
           )}
         </div>

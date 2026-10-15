@@ -15,12 +15,15 @@ import { useTranslation } from 'react-i18next'
 import type { Execution, NodeTypeDescription, WorkflowGraph, WorkflowNode } from '../../api/types'
 import { defaultsOf, isPropertyVisible } from '../../utils/properties'
 import { nodeInputs, outputsByNodeName } from '../executions/executionData'
+import ItemsJson from '../executions/ItemsJson'
 import ItemsView from '../executions/ItemsView'
 import BasePopup from '../popups/BasePopup'
 import { nodeIcon } from '../workflow-canvas/nodeIcons'
 import NodeCredentials from './NodeCredentials'
 import NodeSettings from './NodeSettings'
+import DataViewToggle from './DataViewToggle'
 import ParameterField from './ParameterField'
+import { useDataView } from './useDataView'
 import WebhookUrls, { type TestWebhookControl } from './WebhookUrls'
 
 interface IProps {
@@ -88,6 +91,8 @@ const NodeDetailsPopup: FC<IProps> = ({
   const titleId = useId()
   const [tab, setTab] = useState<'parameters' | 'settings'>('parameters')
   const [outputTab, setOutputTab] = useState(0)
+  const [inputView, setInputView] = useDataView('input')
+  const [outputView, setOutputView] = useDataView('output')
   const [name, setName] = useState(node.name)
   const [nameError, setNameError] = useState<string | null>(null)
 
@@ -180,7 +185,11 @@ const NodeDetailsPopup: FC<IProps> = ({
             ))}
           </Tabs>
         )}
-        <ItemsView items={outputs[shownOutput] ?? []} />
+        {outputView === 'json' ? (
+          <ItemsJson items={outputs[shownOutput] ?? []} />
+        ) : (
+          <ItemsView items={outputs[shownOutput] ?? []} />
+        )}
       </>
     )
   }
@@ -269,11 +278,14 @@ const NodeDetailsPopup: FC<IProps> = ({
             className="w-[30%]"
             extra={
               inputs.length > 0 && (
-                <Typography variant="caption" color="text.secondary">
-                  {t('executions.items', {
-                    count: inputs.reduce((sum, input) => sum + input.items.length, 0),
-                  })}
-                </Typography>
+                <div className="flex items-center gap-2">
+                  <Typography variant="caption" color="text.secondary">
+                    {t('executions.items', {
+                      count: inputs.reduce((sum, input) => sum + input.items.length, 0),
+                    })}
+                  </Typography>
+                  <DataViewToggle value={inputView} onChange={setInputView} />
+                </div>
               )
             }
           >
@@ -292,17 +304,21 @@ const NodeDetailsPopup: FC<IProps> = ({
                         {t('executions.logs.from', { node: input.fromNodeName })}
                       </Typography>
                     )}
-                    <ItemsView
-                      items={input.items}
-                      // One input: $json. Several: name the node they came from.
-                      dragExpression={
-                        canEdit
-                          ? inputs.length > 1
-                            ? (path) => `{{ $(${JSON.stringify(input.fromNodeName)}).item.json${path} }}`
-                            : (path) => `{{ $json${path} }}`
-                          : undefined
-                      }
-                    />
+                    {inputView === 'json' ? (
+                      <ItemsJson items={input.items} />
+                    ) : (
+                      <ItemsView
+                        items={input.items}
+                        // One input: $json. Several: name the node they came from.
+                        dragExpression={
+                          canEdit
+                            ? inputs.length > 1
+                              ? (path) => `{{ $(${JSON.stringify(input.fromNodeName)}).item.json${path} }}`
+                              : (path) => `{{ $json${path} }}`
+                            : undefined
+                        }
+                      />
+                    )}
                   </div>
                 ))}
               </div>
@@ -345,6 +361,7 @@ const NodeDetailsPopup: FC<IProps> = ({
                     path={String(parameters.path ?? '')}
                     canEdit={canEdit}
                     testWebhook={testWebhook}
+                    onGeneratePath={() => setParameter('path', crypto.randomUUID())}
                   />
                 )}
                 {credentialSlots.length > 0 && (
@@ -383,9 +400,12 @@ const NodeDetailsPopup: FC<IProps> = ({
           className={isTrigger ? 'w-[40%]' : 'w-[30%]'}
           extra={
             step && !step.error && (
-              <Typography variant="caption" color="text.secondary">
-                {t('executions.items', { count: outputs[shownOutput]?.length ?? 0 })}
-              </Typography>
+              <div className="flex items-center gap-2">
+                <Typography variant="caption" color="text.secondary">
+                  {t('executions.items', { count: outputs[shownOutput]?.length ?? 0 })}
+                </Typography>
+                <DataViewToggle value={outputView} onChange={setOutputView} />
+              </div>
             )
           }
         >

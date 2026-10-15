@@ -92,7 +92,6 @@
     "defaultName": "My workflow",
     "createFailed": "Could not create the workflow",
     "loadFailed": "Couldn't load workflows",
-    "toggleFailed": "Couldn't change the workflow status",
     "exportFailed": "Couldn't export the workflow",
     "deleted": "Workflow deleted",
     "deleteFailed": "Couldn't delete the workflow",
@@ -124,7 +123,8 @@
     },
     "active": "Active",
     "inactive": "Inactive",
-    "notFound": "Workflow not found"
+    "notFound": "Workflow not found",
+    "activateHint": "Add a Webhook or Schedule trigger to activate: a Manual Trigger only runs from the editor."
   },
   "notFound": {
     "title": "Page not found",
@@ -299,8 +299,8 @@
       "stopListening": "Waiting for a request — stop"
     },
     "unsaved": {
-      "title": "Leave without saving?",
-      "text": "Your changes to this workflow will be lost.",
+      "title": "Couldn't save your changes",
+      "text": "Leave anyway? The latest changes to this workflow will be lost.",
       "leave": "Leave"
     },
     "groups": {
@@ -317,7 +317,9 @@
       "search": "Search nodes…",
       "noResults": "No matching nodes"
     },
-    "deleteConnection": "Delete connection"
+    "deleteConnection": "Delete connection",
+    "saving": "Saving…",
+    "saveFailed": "Not saved — retry"
   },
   "nodeDetails": {
     "name": "Node name",
@@ -354,12 +356,16 @@
       "title": "Webhook URLs",
       "test": "Test URL",
       "production": "Production URL",
-      "setPath": "Set a path to get the URL.",
+      "setPath": "Set a path below to get the URL, or",
       "testHint": "Listen, then send one request here: it runs the saved workflow and shows the result in the editor.",
       "productionHint": "Answers only while the workflow is active.",
       "listen": "Listen for test event",
       "waiting": "Waiting for a request… {{seconds}} s",
-      "stop": "Stop"
+      "stop": "Stop",
+      "generatePath": "Generate path"
+    },
+    "view": {
+      "fields": "Fields"
     }
   }
 }
