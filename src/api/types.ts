@@ -260,7 +260,7 @@ export interface CreateWorkflowInput {
 export interface UpdateWorkflowInput {
   name?: string
   active?: boolean
-  /** A changed graph creates a new version. */
+  /** A change to the logic is a new version; moved nodes update the current one. */
   graph?: WorkflowGraph
   settings?: WorkflowSettings
   /** Replaces all pinned data; {} unpins everything. */

@@ -469,5 +469,24 @@
     "joined": "Welcome to the workspace!",
     "wrongPassword": "Wrong password for this account",
     "notFound": "This invitation is invalid or has expired. Ask for a new one."
+  },
+  "workflowSettings": {
+    "title": "Workflow settings",
+    "errorWorkflow": "Error workflow",
+    "none": "None",
+    "errorWorkflowHint": "Runs when an execution of this workflow fails: production runs only (webhook, schedule), not manual ones. It needs an Error Trigger node.",
+    "createErrorWorkflow": "Create one",
+    "errorWorkflowName": "{{name}} — errors",
+    "errorWorkflowCreated": "Error workflow created: add steps after its Error Trigger, e.g. a message to Slack.",
+    "limitTime": "Limit execution time",
+    "timeout": "Timeout",
+    "unit": "Unit",
+    "units": {
+      "seconds": "seconds",
+      "minutes": "minutes",
+      "hours": "hours"
+    },
+    "timeoutHint": "Longer runs are stopped and fail. The server has its own limit (1 hour by default), which always applies.",
+    "saved": "Workflow settings saved"
   }
 }

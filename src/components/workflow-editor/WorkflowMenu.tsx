@@ -7,6 +7,7 @@ import MenuItem from '@mui/material/MenuItem'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import type { Workflow } from '../../api/types'
@@ -15,13 +16,14 @@ import { setAlertAC } from '../../storage/alertSlice'
 import { useAppDispatch } from '../../storage/hooks'
 import { downloadJson } from '../../utils/downloadJson'
 import ConfirmPopup from '../popups/ConfirmPopup'
+import WorkflowSettingsPopup from './WorkflowSettingsPopup'
 
 interface IProps {
   workflow: Workflow
   canEdit: boolean
 }
 
-/** The "…" next to the workflow name: download and delete. */
+/** The "…" next to the workflow name: settings, download and delete. */
 const WorkflowMenu: FC<IProps> = ({ workflow, canEdit }) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -30,6 +32,7 @@ const WorkflowMenu: FC<IProps> = ({ workflow, canEdit }) => {
   const remove = useDeleteWorkflow()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [isDeleteVisible, setIsDeleteVisible] = useState(false)
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false)
 
   const handleExport = () => {
     setAnchor(null)
@@ -58,6 +61,17 @@ const WorkflowMenu: FC<IProps> = ({ workflow, canEdit }) => {
         <MoreHorizIcon fontSize="small" />
       </IconButton>
       <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
+        <MenuItem
+          onClick={() => {
+            setAnchor(null)
+            setIsSettingsVisible(true)
+          }}
+        >
+          <ListItemIcon>
+            <SettingsOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          {t('workflowSettings.title')}
+        </MenuItem>
         <MenuItem onClick={handleExport}>
           <ListItemIcon>
             <FileDownloadOutlinedIcon fontSize="small" />
@@ -80,6 +94,9 @@ const WorkflowMenu: FC<IProps> = ({ workflow, canEdit }) => {
           </MenuItem>
         )}
       </Menu>
+      {isSettingsVisible && (
+        <WorkflowSettingsPopup workflow={workflow} canEdit={canEdit} onClose={() => setIsSettingsVisible(false)} />
+      )}
       <ConfirmPopup
         isVisible={isDeleteVisible}
         onClose={() => setIsDeleteVisible(false)}
