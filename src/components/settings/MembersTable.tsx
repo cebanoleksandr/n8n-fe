@@ -89,7 +89,8 @@ const MembersTable: FC<IProps> = ({ myId, myRole }) => {
                       {member.name.charAt(0).toUpperCase()}
                     </Avatar>
                     <div className="min-w-0">
-                      <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+                      {/* A div: the "You" chip is a div, which a <p> can't hold. */}
+                      <Typography variant="body2" component="div" noWrap sx={{ fontWeight: 600 }}>
                         {member.name}
                         {isMe && <Chip size="small" label={t('settings.members.you')} sx={{ ml: 1, height: 18 }} />}
                       </Typography>
