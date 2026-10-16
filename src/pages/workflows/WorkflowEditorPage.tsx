@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import HistoryIcon from '@mui/icons-material/History'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { useTranslation } from 'react-i18next'
 import { useBlocker, useParams } from 'react-router-dom'
@@ -34,7 +35,18 @@ import WorkflowCanvas from '../../components/workflow-canvas/WorkflowCanvas'
 import NodePicker from '../../components/workflow-editor/NodePicker'
 import { useEditorRun } from '../../components/workflow-editor/useEditorRun'
 import { useTestWebhook } from '../../components/workflow-editor/useTestWebhook'
-import { useHasRole, useNodeTypes, useUpdateWorkflow, useWorkflow } from '../../hooks/api'
+import VersionsPanel from '../../components/workflow-editor/VersionsPanel'
+import {
+  useHasRole,
+  useNodeTypes,
+  useRestoreWorkflowVersion,
+  useUpdateWorkflow,
+  useWorkflow,
+  useWorkflowVersion,
+} from '../../hooks/api'
+import { setAlertAC } from '../../storage/alertSlice'
+import { useAppDispatch } from '../../storage/hooks'
+import { formatDateTime } from '../../utils/formatDate'
 import { workflowsService } from '../../services/workflows.service'
 
 const AUTOSAVE_DELAY_MS = 2000
@@ -53,7 +65,7 @@ interface Draft {
 type PickerTarget = { source?: ConnectionEndpoint }
 
 const WorkflowEditorPage = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { workflowId } = useParams() as { workflowId: string }
   const canEdit = useHasRole('editor')
 
@@ -80,6 +92,12 @@ const WorkflowEditorPage = () => {
   const [selectedStep, setSelectedStep] = useState<number | null>(null)
   // The node whose settings are open (double-click on the canvas).
   const [openNodeId, setOpenNodeId] = useState<string | null>(null)
+  // Version history: the panel, and an older version shown read-only.
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const preview = useWorkflowVersion(workflowId, previewId ?? undefined)
+  const restore = useRestoreWorkflowVersion()
+  const dispatch = useAppDispatch()
 
   // A request on the test URL starts a run: show it like any other.
   const testWebhook = useTestWebhook(workflowId, (executionId) => {
@@ -99,7 +117,8 @@ const WorkflowEditorPage = () => {
   const webhookOnly = hasTrigger && triggers.every((node) => node.type === 'core.webhook')
   const isEmpty = !!graph && graph.nodes.length === 0
   // An empty workflow opens with the trigger list, like n8n.
-  const showPicker = canEdit && (picker !== null || (isEmpty && !pickerDismissed))
+  const showPicker = canEdit && !historyOpen && (picker !== null || (isEmpty && !pickerDismissed))
+  const previewing = previewId !== null
 
   const setGraph = useCallback(
     (next: WorkflowGraph) => setDraft((current) => current && { ...current, graph: next }),
@@ -175,6 +194,37 @@ const WorkflowEditorPage = () => {
   const updateNode = (node: WorkflowNode) => {
     if (!graph) return
     setGraph({ ...graph, nodes: graph.nodes.map((n) => (n.id === node.id ? node : n)) })
+  }
+
+  const openHistory = () => {
+    setPicker(null)
+    setPickerDismissed(true)
+    setHistoryOpen(true)
+  }
+
+  const closeHistory = () => {
+    setHistoryOpen(false)
+    setPreviewId(null)
+  }
+
+  /** Makes the previewed version current again, as a new version. */
+  const restorePreview = async () => {
+    if (!preview.data) return
+    // Unsaved changes are saved first: they stay in the history.
+    if (!(await save())) return
+    try {
+      const restored = await restore.mutateAsync({ id: workflowId, versionId: preview.data.id })
+      setDraft({ workflowId, graph: restored.graph, saved: restored.graph })
+      setPreviewId(null)
+      dispatch(
+        setAlertAC({
+          text: t('editor.versions.restored', { from: preview.data.version, to: restored.version }),
+          mode: 'success',
+        }),
+      )
+    } catch (error) {
+      setSaveError(getErrorMessage(error))
+    }
   }
 
   // Ctrl/Cmd+S saves, like any editor.
@@ -262,20 +312,63 @@ const WorkflowEditorPage = () => {
     <div className="h-full flex min-h-0">
       <div className="flex-1 min-w-0 flex flex-col min-h-0">
         <div className="relative flex-1 min-h-0">
-          <WorkflowCanvas
-            graph={graph}
-            nodeTypeDescriptions={nodeTypes.data}
-            run={run}
-            onGraphChange={canEdit ? setGraph : undefined}
-            onAddFrom={canEdit ? (source) => setPicker({ source }) : undefined}
-            onNodeDoubleClick={setOpenNodeId}
-            onNodeClick={(nodeId) => {
-              const index = execution?.steps.findLastIndex((step) => step.nodeId === nodeId) ?? -1
-              if (index >= 0) setSelectedStep(index)
-            }}
-          />
+          {previewing ? (
+            preview.data ? (
+              <WorkflowCanvas
+                // Fits the view to each version shown.
+                key={preview.data.id}
+                graph={preview.data.graph}
+                nodeTypeDescriptions={nodeTypes.data}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <CircularProgress />
+              </div>
+            )
+          ) : (
+            <WorkflowCanvas
+              key="draft"
+              graph={graph}
+              nodeTypeDescriptions={nodeTypes.data}
+              run={run}
+              onGraphChange={canEdit ? setGraph : undefined}
+              onAddFrom={canEdit ? (source) => setPicker({ source }) : undefined}
+              onNodeDoubleClick={setOpenNodeId}
+              onNodeClick={(nodeId) => {
+                const index = execution?.steps.findLastIndex((step) => step.nodeId === nodeId) ?? -1
+                if (index >= 0) setSelectedStep(index)
+              }}
+            />
+          )}
 
-          {isEmpty && canEdit && (
+          {previewing && preview.data && (
+            <Alert
+              severity="info"
+              icon={<HistoryIcon />}
+              className="absolute top-3 left-1/2 -translate-x-1/2 items-center"
+              // As wide as its content, so the buttons stay on one line.
+              sx={{ width: 'max-content', maxWidth: 'calc(100% - 24px)', '& .MuiButton-root': { whiteSpace: 'nowrap' } }}
+              action={
+                <div className="flex gap-1">
+                  {canEdit && (
+                    <Button size="small" variant="contained" onClick={() => void restorePreview()} loading={restore.isPending}>
+                      {t('editor.versions.restore')}
+                    </Button>
+                  )}
+                  <Button size="small" color="inherit" onClick={() => setPreviewId(null)}>
+                    {t('editor.versions.backToEditing')}
+                  </Button>
+                </div>
+              }
+            >
+              {t('editor.versions.viewing', {
+                version: preview.data.version,
+                when: formatDateTime(preview.data.createdAt, i18n.language),
+              })}
+            </Alert>
+          )}
+
+          {isEmpty && canEdit && !previewing && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <button
                 type="button"
@@ -301,9 +394,9 @@ const WorkflowEditorPage = () => {
             </div>
           )}
 
-          {canEdit && (
-            <div className="absolute top-3 right-3 flex items-start gap-2">
-              {/* Saves by itself; a click (or Ctrl+S) saves right away. */}
+          <div className="absolute top-3 right-3 flex items-start gap-2">
+            {canEdit && !previewing && (
+              /* Saves by itself; a click (or Ctrl+S) saves right away. */
               <Button
                 variant="outlined"
                 color={saveRefused ? 'error' : 'inherit'}
@@ -321,18 +414,33 @@ const WorkflowEditorPage = () => {
                         : 'editor.saved',
                 )}
               </Button>
-              {!showPicker && (
-                <Tooltip title={t('editor.addNode')} placement="left">
-                  <IconButton
-                    onClick={() => setPicker({})}
-                    sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}
-                  >
-                    <AddIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </div>
-          )}
+            )}
+            {!historyOpen && (
+              <Tooltip title={t('editor.versions.title')} placement="bottom">
+                <IconButton
+                  onClick={openHistory}
+                  aria-label={t('editor.versions.title')}
+                  sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}
+                >
+                  <HistoryIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {canEdit && !previewing && !showPicker && (
+              <Tooltip title={t('editor.addNode')} placement="left">
+                <IconButton
+                  onClick={() => {
+                    setHistoryOpen(false)
+                    setPicker({})
+                  }}
+                  aria-label={t('editor.addNode')}
+                  sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}
+                >
+                  <AddIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+          </div>
 
           {saveError && (
             <Alert
@@ -344,7 +452,7 @@ const WorkflowEditorPage = () => {
             </Alert>
           )}
 
-          {canEdit && hasTrigger && (
+          {canEdit && hasTrigger && !previewing && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
               <Button
                 variant="contained"
@@ -413,6 +521,16 @@ const WorkflowEditorPage = () => {
           )}
         </Box>
       </div>
+
+      {historyOpen && (
+        <VersionsPanel
+          workflowId={workflowId}
+          currentVersion={workflow.data?.version}
+          previewId={previewId}
+          onPreview={setPreviewId}
+          onClose={closeHistory}
+        />
+      )}
 
       {showPicker && nodeTypes.data && (
         <NodePicker

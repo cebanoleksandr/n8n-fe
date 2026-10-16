@@ -319,7 +319,16 @@
     },
     "deleteConnection": "Delete connection",
     "saving": "Saving…",
-    "saveFailed": "Not saved — retry"
+    "saveFailed": "Not saved — retry",
+    "versions": {
+      "title": "Version history",
+      "subtitle": "Saving a change to the logic makes a new version. Moving nodes does not.",
+      "current": "Current",
+      "viewing": "Version {{version}} from {{when}} — read only",
+      "restore": "Restore this version",
+      "backToEditing": "Back to editing",
+      "restored": "Version {{from}} restored as version {{to}}"
+    }
   },
   "nodeDetails": {
     "name": "Node name",
