@@ -50,3 +50,18 @@ Each test signs up its own user, so tests run in parallel without sharing
 state. A test fails on any error in the browser console (React warnings
 included). After a failure, `npx playwright show-trace test-results/<test>/trace.zip`
 replays it step by step.
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push to `main` and on pull requests:
+
+- **Lint, build, unit tests**: `npm run lint`, `npm run build` (type-checks
+  the app, tests and configs), `npm test`.
+- **End-to-end tests**: checks out
+  [n8n-be](https://github.com/cebanoleksandr/n8n-be) next to the frontend,
+  starts its Postgres, Redis and S3 with `docker compose`, creates the
+  `flow_test` database and runs Playwright. Traces of failed tests are kept as
+  the `playwright-traces` artifact for a week.
+
+The e2e job tests against the backend's `main`. To try a backend branch, run
+the workflow by hand (Actions → CI → Run workflow) with `backend-ref`.

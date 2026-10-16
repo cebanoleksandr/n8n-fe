@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      backend-ref:
+        description: Branch, tag or commit of n8n-be to run the e2e tests against
+        default: main
+
+# A newer push to the same branch makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, build, unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # The lock file is written by npm 12, as in the backend.
+      - run: npm install -g npm@12.2.0
+      - run: npm ci
+
+      - run: npm run lint
+      # Type-checks the app, the tests and the configs, then builds.
+      - run: npm run build
+      - run: npm test
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      # Side by side, as on a developer's machine: playwright.config.ts starts
+      # the backend from ../backend.
+      - uses: actions/checkout@v4
+        with:
+          path: frontend
+
+      - uses: actions/checkout@v4
+        with:
+          repository: cebanoleksandr/n8n-be
+          ref: ${{ inputs.backend-ref || 'main' }}
+          path: backend
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - run: npm install -g npm@12.2.0
+      - run: npm ci
+      - run: npm ci
+        working-directory: backend
+
+      - name: Configure the backend
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          sed -i "s|^ENCRYPTION_KEY=.*|ENCRYPTION_KEY=$(openssl rand -base64 32)|" .env
+          sed -i "s|^JWT_SECRET=.*|JWT_SECRET=$(openssl rand -base64 48)|" .env
+
+      - name: Start Postgres, Redis and S3
+        working-directory: backend
+        run: docker compose up -d --wait postgres redis s3
+
+      # The e2e database; migrations run when the backend starts.
+      - name: Create the e2e database
+        working-directory: backend
+        run: docker compose exec -T postgres createdb -U flow flow_test
+
+      # Chrome is preinstalled on GitHub's Ubuntu runners (channel "chrome").
+      - run: npx playwright test
+
+      - name: Keep traces of failed tests
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: frontend/test-results
+          retention-days: 7
