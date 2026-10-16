@@ -46,6 +46,7 @@ import {
 } from '../../hooks/api'
 import { setAlertAC } from '../../storage/alertSlice'
 import { useAppDispatch } from '../../storage/hooks'
+import { apiErrorMessage } from '../../utils/apiErrorMessage'
 import { formatDateTime } from '../../utils/formatDate'
 import { workflowsService } from '../../services/workflows.service'
 
@@ -97,6 +98,8 @@ const WorkflowEditorPage = () => {
   const [previewId, setPreviewId] = useState<string | null>(null)
   const preview = useWorkflowVersion(workflowId, previewId ?? undefined)
   const restore = useRestoreWorkflowVersion()
+  // Pinned data saves on its own, apart from the graph's autosave.
+  const pinUpdate = useUpdateWorkflow()
   const dispatch = useAppDispatch()
 
   // A request on the test URL starts a run: show it like any other.
@@ -205,6 +208,27 @@ const WorkflowEditorPage = () => {
   const closeHistory = () => {
     setHistoryOpen(false)
     setPreviewId(null)
+  }
+
+  const pinData = workflow.data?.pinData
+  const pinnedNodeIds = useMemo(() => new Set(Object.keys(pinData ?? {})), [pinData])
+
+  /** Pins (or unpins, with null) a node's output for test runs. */
+  const setPinned = async (nodeId: string, items: Record<string, unknown>[] | null): Promise<boolean> => {
+    // Pins of deleted nodes go too.
+    const nodeIds = new Set(graph?.nodes.map((node) => node.id))
+    const next = Object.fromEntries(
+      Object.entries(pinData ?? {}).filter(([id]) => id !== nodeId && nodeIds.has(id)),
+    )
+    if (items) next[nodeId] = items
+    try {
+      await pinUpdate.mutateAsync({ id: workflowId, input: { pinData: next } })
+      dispatch(setAlertAC({ text: items ? 'nodeDetails.pin.pinned' : 'nodeDetails.pin.unpinned', mode: 'success' }))
+      return true
+    } catch (error) {
+      dispatch(setAlertAC({ text: apiErrorMessage(error, t), mode: 'error' }))
+      return false
+    }
   }
 
   /** Makes the previewed version current again, as a new version. */
@@ -331,6 +355,7 @@ const WorkflowEditorPage = () => {
               graph={graph}
               nodeTypeDescriptions={nodeTypes.data}
               run={run}
+              pinnedNodeIds={pinnedNodeIds}
               onGraphChange={canEdit ? setGraph : undefined}
               onAddFrom={canEdit ? (source) => setPicker({ source }) : undefined}
               onNodeDoubleClick={setOpenNodeId}
@@ -565,6 +590,9 @@ const WorkflowEditorPage = () => {
               onListen: () => void listenFor(openNode.id),
               onStop: testWebhook.cancel,
             }}
+            pinned={pinData?.[openNode.id]}
+            onSetPinned={(items) => setPinned(openNode.id, items)}
+            isSavingPin={pinUpdate.isPending}
             onClose={() => setOpenNodeId(null)}
           />
         </Suspense>

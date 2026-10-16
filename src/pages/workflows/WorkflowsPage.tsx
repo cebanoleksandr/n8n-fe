@@ -12,12 +12,14 @@ import ListToolbar from '../../components/ui/ListToolbar'
 import WorkflowCard from '../../components/workflows/WorkflowCard'
 import { useHasRole, useWorkflows } from '../../hooks/api'
 import { useCreateWorkflowAndOpen } from '../../hooks/useCreateWorkflowAndOpen'
+import { useImportWorkflowFromFile } from '../../hooks/useImportWorkflowFromFile'
 import { useListParams } from '../../hooks/useListParams'
 
 const WorkflowsPage = () => {
   const { t } = useTranslation()
   const canEdit = useHasRole('editor')
   const { createAndOpen, isPending: isCreating } = useCreateWorkflowAndOpen()
+  const importer = useImportWorkflowFromFile()
   const { page, limit, search, sort, update } = useListParams()
 
   const { data, isPending, isError, refetch, isPlaceholderData } = useWorkflows({
@@ -84,9 +86,14 @@ const WorkflowsPage = () => {
             {t('workflows.empty.text')}
           </Typography>
           {canEdit && (
-            <Button variant="contained" onClick={createAndOpen} loading={isCreating}>
-              {t('workflows.create')}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="contained" onClick={createAndOpen} loading={isCreating}>
+                {t('workflows.create')}
+              </Button>
+              <Button onClick={importer.pickFile} loading={importer.isPending}>
+                {t('workflows.import.fromFile')}
+              </Button>
+            </div>
           )}
         </Paper>
       )

@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { useHasRole } from '../../hooks/api'
-import { useCreateWorkflowAndOpen } from '../../hooks/useCreateWorkflowAndOpen'
+import CreateWorkflowButton from '../workflows/CreateWorkflowButton'
 
 const tabs = [
   { to: '/workflows', label: 'nav.workflows' },
@@ -19,7 +19,6 @@ const OverviewLayout = () => {
   const { pathname } = useLocation()
   const [, setSearchParams] = useSearchParams()
   const canEdit = useHasRole('editor')
-  const { createAndOpen, isPending } = useCreateWorkflowAndOpen()
 
   const current = tabs.find((tab) => pathname === tab.to)?.to ?? false
   const isCredentials = current === '/credentials'
@@ -49,9 +48,7 @@ const OverviewLayout = () => {
               {t('credentials.create')}
             </Button>
           ) : (
-            <Button variant="contained" onClick={createAndOpen} loading={isPending}>
-              {t('workflows.create')}
-            </Button>
+            <CreateWorkflowButton />
           ))}
       </div>
 

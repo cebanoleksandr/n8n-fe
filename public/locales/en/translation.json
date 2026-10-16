@@ -114,6 +114,15 @@
     "notFound": {
       "title": "Nothing found",
       "text": "No workflows match \"{{search}}\"."
+    },
+    "import": {
+      "fromFile": "Import from file",
+      "more": "More ways to create",
+      "done": "Workflow \"{{name}}\" imported",
+      "notJson": "{{file}} is not a JSON file.",
+      "notWorkflow": "{{file}} is not a workflow export: use a file from \"Download\" in a workflow's menu.",
+      "droppedCredentials_one": "Imported. {{count}} credential is not in this workspace: pick one in the node that needs it.",
+      "droppedCredentials_other": "Imported. {{count}} credentials are not in this workspace: pick them in the nodes that need them."
     }
   },
   "workflow": {
@@ -375,6 +384,20 @@
     },
     "view": {
       "fields": "Fields"
+    },
+    "pin": {
+      "pin": "Pin data: test runs use it instead of running this node",
+      "pinned": "Output pinned",
+      "unpinned": "Output unpinned",
+      "pinnedHint": "Pinned: manual runs use this data instead of running the node. Webhook and schedule runs ignore it.",
+      "edit": "Edit",
+      "unpin": "Unpin",
+      "setTestData": "Set test data",
+      "editHint": "A JSON object, or an array of objects (one per item).",
+      "notJson": "Not valid JSON",
+      "notObjects": "Enter an object, or an array of objects",
+      "tooMany": "At most 1000 items",
+      "tooBig": "Pinned data must be under 2 MB"
     }
   },
   "roles": {

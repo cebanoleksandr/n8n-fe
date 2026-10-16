@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
+import PushPinIcon from '@mui/icons-material/PushPin'
 import BoltIcon from '@mui/icons-material/Bolt'
 import { Handle, type Node, type NodeProps, Position } from '@xyflow/react'
 
@@ -22,6 +23,8 @@ export type CanvasNodeData = {
   /** Absent: did not run (dimmed when the canvas shows a run). */
   status?: CanvasNodeStatus
   dimmed?: boolean
+  /** Output pinned for test runs. */
+  pinned?: boolean
   /** Handles can be connected (the editor). */
   editable?: boolean
   /** Per output: nothing is connected to it yet. */
@@ -90,6 +93,14 @@ const CanvasNode = ({ data, selected }: NodeProps<CanvasNodeType>) => {
         }}
       >
         {data.icon}
+
+        {data.pinned && (
+          <PushPinIcon
+            color="secondary"
+            aria-label="pinned"
+            sx={{ position: 'absolute', left: data.isTrigger ? 14 : 4, top: 4, fontSize: '16px !important' }}
+          />
+        )}
 
         {data.status === 'success' && (
           <CheckIcon color="success" sx={{ position: 'absolute', right: 4, bottom: 4, fontSize: '18px !important' }} />

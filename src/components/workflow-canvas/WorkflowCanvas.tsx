@@ -52,6 +52,8 @@ interface IProps {
   onGraphChange?: (graph: WorkflowGraph) => void
   /** The "+" on a free output: add a node after it. */
   onAddFrom?: (source: ConnectionEndpoint) => void
+  /** Nodes whose output is pinned for test runs: they get a pin. */
+  pinnedNodeIds?: Set<string>
 }
 
 /** "out-2" / "in-0" -> 2 / 0. */
@@ -76,6 +78,7 @@ const WorkflowCanvas: FC<IProps> = ({
   onNodeDoubleClick,
   onGraphChange,
   onAddFrom,
+  pinnedNodeIds,
 }) => {
   const { t } = useTranslation()
   const { mode, systemMode } = useColorScheme()
@@ -113,13 +116,14 @@ const WorkflowCanvas: FC<IProps> = ({
           outputs: outputNames.map((name) => (outputNames.length > 1 ? name : '')),
           status,
           dimmed: !!run && !status,
+          pinned: pinnedNodeIds?.has(node.id),
           editable,
           freeOutputs: outputNames.map((_, i) => !usedOutputs.has(`${node.id}:${i}`)),
           onAddFrom: onAddFrom && ((index: number) => onAddFrom({ nodeId: node.id, index })),
         },
       }
     })
-  }, [graph, nodeTypeDescriptions, run, selectedNodeId, selectedNodes, measured, editable, onAddFrom])
+  }, [graph, nodeTypeDescriptions, run, selectedNodeId, selectedNodes, measured, editable, onAddFrom, pinnedNodeIds])
 
   const removeConnection = (id: string) =>
     onGraphChange?.({ ...graph, connections: graph.connections.filter((c) => connectionId(c) !== id) })

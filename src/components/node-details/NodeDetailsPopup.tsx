@@ -8,9 +8,11 @@ import IconButton from '@mui/material/IconButton'
 import InputBase from '@mui/material/InputBase'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined'
 import { useTranslation } from 'react-i18next'
 import type { Execution, NodeTypeDescription, WorkflowGraph, WorkflowNode } from '../../api/types'
 import { defaultsOf, isPropertyVisible } from '../../utils/properties'
@@ -23,6 +25,7 @@ import NodeCredentials from './NodeCredentials'
 import NodeSettings from './NodeSettings'
 import DataViewToggle from './DataViewToggle'
 import ParameterField from './ParameterField'
+import { PinnedDataEditor, PinnedDataView } from './PinnedData'
 import { useDataView } from './useDataView'
 import WebhookUrls, { type TestWebhookControl } from './WebhookUrls'
 
@@ -42,6 +45,11 @@ interface IProps {
   onTest: () => void
   /** Webhook nodes: listening on the test URL. */
   testWebhook?: TestWebhookControl
+  /** Output pinned for test runs, if any. */
+  pinned: Record<string, unknown>[] | undefined
+  /** Saves (or, with null, removes) the pinned output; resolves when saved. */
+  onSetPinned: (items: Record<string, unknown>[] | null) => Promise<boolean>
+  isSavingPin: boolean
   onClose: () => void
 }
 
@@ -85,6 +93,9 @@ const NodeDetailsPopup: FC<IProps> = ({
   onRename,
   onTest,
   testWebhook,
+  pinned,
+  onSetPinned,
+  isSavingPin,
   onClose,
 }) => {
   const { t } = useTranslation()
@@ -93,6 +104,8 @@ const NodeDetailsPopup: FC<IProps> = ({
   const [outputTab, setOutputTab] = useState(0)
   const [inputView, setInputView] = useDataView('input')
   const [outputView, setOutputView] = useDataView('output')
+  // Editing the pinned output as JSON: what the editor starts from.
+  const [pinDraft, setPinDraft] = useState<Record<string, unknown>[] | null>(null)
   const [name, setName] = useState(node.name)
   const [nameError, setNameError] = useState<string | null>(null)
 
@@ -133,7 +146,33 @@ const NodeDetailsPopup: FC<IProps> = ({
     isPropertyVisible(slot, parameters),
   )
 
+  const savePinned = async (items: Record<string, unknown>[] | null) => {
+    if (await onSetPinned(items)) setPinDraft(null)
+  }
+
   const renderOutput = () => {
+    if (pinDraft) {
+      return (
+        <PinnedDataEditor
+          initial={pinDraft}
+          isSaving={isSavingPin}
+          onSave={(items) => void savePinned(items)}
+          onCancel={() => setPinDraft(null)}
+        />
+      )
+    }
+    if (pinned) {
+      return (
+        <PinnedDataView
+          items={pinned}
+          view={outputView}
+          canEdit={canEdit}
+          isSaving={isSavingPin}
+          onEdit={() => setPinDraft(pinned)}
+          onUnpin={() => void savePinned(null)}
+        />
+      )
+    }
     if (isRunning) {
       return (
         <EmptyState>
@@ -151,9 +190,15 @@ const NodeDetailsPopup: FC<IProps> = ({
             {t('nodeDetails.noOutput')}
           </Typography>
           {canEdit && (
-            <Button variant="outlined" startIcon={<PlayArrowIcon />} onClick={onTest}>
-              {t('nodeDetails.test')}
-            </Button>
+            <div className="flex flex-col items-center gap-2">
+              <Button variant="outlined" startIcon={<PlayArrowIcon />} onClick={onTest}>
+                {t('nodeDetails.test')}
+              </Button>
+              {/* Pinned data needs no run: write it by hand. */}
+              <Button size="small" startIcon={<PushPinOutlinedIcon />} onClick={() => setPinDraft([{}])}>
+                {t('nodeDetails.pin.setTestData')}
+              </Button>
+            </div>
           )}
         </EmptyState>
       )
@@ -399,13 +444,35 @@ const NodeDetailsPopup: FC<IProps> = ({
           title={t('executions.logs.output')}
           className={isTrigger ? 'w-[40%]' : 'w-[30%]'}
           extra={
-            step && !step.error && (
+            pinDraft ? null : pinned ? (
               <div className="flex items-center gap-2">
                 <Typography variant="caption" color="text.secondary">
-                  {t('executions.items', { count: outputs[shownOutput]?.length ?? 0 })}
+                  {t('executions.items', { count: pinned.length })}
                 </Typography>
                 <DataViewToggle value={outputView} onChange={setOutputView} />
               </div>
+            ) : (
+              step && !step.error && (
+                <div className="flex items-center gap-2">
+                  <Typography variant="caption" color="text.secondary">
+                    {t('executions.items', { count: outputs[shownOutput]?.length ?? 0 })}
+                  </Typography>
+                  <DataViewToggle value={outputView} onChange={setOutputView} />
+                  {canEdit && (
+                    <Tooltip title={t('nodeDetails.pin.pin')}>
+                      <IconButton
+                        size="small"
+                        aria-label={t('nodeDetails.pin.pin')}
+                        disabled={isSavingPin}
+                        // The first output: the one pinned data replaces.
+                        onClick={() => void onSetPinned((outputs[0] ?? []).map((item) => item.json))}
+                      >
+                        <PushPinOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </div>
+              )
             )
           }
         >
