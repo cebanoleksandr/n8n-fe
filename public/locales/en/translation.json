@@ -367,5 +367,98 @@
     "view": {
       "fields": "Fields"
     }
+  },
+  "roles": {
+    "viewer": "Viewer",
+    "editor": "Editor",
+    "admin": "Admin",
+    "owner": "Owner",
+    "hints": {
+      "viewer": "Viewers see workflows, executions and credentials, but change nothing.",
+      "editor": "Editors build and run workflows and manage credentials.",
+      "admin": "Admins also manage members and the workspace.",
+      "owner": "Owners can do everything, including managing admins and other owners."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Your account, this workspace and its members",
+    "validation": {
+      "workspaceNameRequired": "Enter a name"
+    },
+    "profile": {
+      "account": "Account",
+      "password": "Password",
+      "passwordHint": "Changing it signs you out everywhere else.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "changePassword": "Change password",
+      "passwordChanged": "Password changed. Other sessions are signed out.",
+      "wrongPassword": "Wrong password",
+      "preferences": "Preferences",
+      "language": "Language",
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System"
+    },
+    "workspace": {
+      "general": "Workspace",
+      "name": "Name",
+      "adminsOnly": "Only admins can rename the workspace.",
+      "renamed": "Workspace renamed",
+      "yours": "Your workspaces",
+      "yoursHint": "Workspaces you are a member of. Workflows and credentials belong to one workspace.",
+      "current": "Current",
+      "switch": "Switch",
+      "leave": "Leave workspace",
+      "leaveHint": "You lose access to its workflows, executions and credentials until invited again.",
+      "leaveLastOwner": "You are its only owner: make someone else an owner first.",
+      "leaveOnly": "This is your only workspace.",
+      "left": "You left the workspace",
+      "leaveConfirm": {
+        "title": "Leave {{name}}?",
+        "text": "You will need a new invitation to come back."
+      }
+    },
+    "members": {
+      "title": "Members",
+      "viewOnly": "Only admins can change roles and invite people.",
+      "member": "Member",
+      "role": "Role",
+      "joined": "Joined",
+      "you": "You",
+      "remove": "Remove from workspace",
+      "removed": "Member removed",
+      "roleChanged": "Role changed",
+      "removeConfirm": {
+        "title": "Remove {{name}}?",
+        "text": "They lose access to this workspace. Their workflows stay."
+      },
+      "inviteTitle": "Invite people",
+      "inviteHint": "Emails are not sent yet: you get a link to share yourself. It is valid for 7 days.",
+      "invite": "Invite",
+      "alreadyMember": "Already a member of this workspace",
+      "linkTitle": "Invitation created",
+      "linkText": "Send this link to {{email}}. Opening it lets them join the workspace.",
+      "linkOnce": "Copy it now: the link is shown only once. To get a new one, invite the same email again.",
+      "done": "Done",
+      "pending": "Pending invitations",
+      "noInvitations": "No pending invitations.",
+      "expires": "expires {{when}}",
+      "revoke": "Revoke",
+      "revoked": "Invitation revoked"
+    }
+  },
+  "invitation": {
+    "title": "Invitation",
+    "join": "Join {{workspace}}",
+    "invitedAs": "You are invited as {{role}}",
+    "existingAccount": "{{email}} already has an account: enter its password to join.",
+    "newAccount": "Create an account for {{email}} to join.",
+    "accept": "Join workspace",
+    "joined": "Welcome to the workspace!",
+    "wrongPassword": "Wrong password for this account",
+    "notFound": "This invitation is invalid or has expired. Ask for a new one."
   }
 }
