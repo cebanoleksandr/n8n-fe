@@ -2,10 +2,14 @@ import { describe, expect, it } from 'vitest'
 import type { NodeTypeDescription, WorkflowGraph, WorkflowNode } from '../../api/types'
 import {
   connectionId,
+  copyNodes,
   createNode,
   nextFreePosition,
   NODE_SPACING_X,
   outputNamesOf,
+  parseClipboard,
+  PASTE_OFFSET,
+  pasteNodes,
   removeNodes,
   renameNode,
   sameConnection,
@@ -178,5 +182,53 @@ describe('renameNode', () => {
 
   it('returns the same graph when the name does not change', () => {
     expect(renameNode(graph, 'a', 'Get (Jobs) $1')).toBe(graph)
+  })
+})
+
+describe('copy and paste', () => {
+  const graph: WorkflowGraph = {
+    nodes: [
+      node('t', { name: 'Trigger', position: [0, 0] }),
+      node('a', { name: 'Fetch', position: [200, 0] }),
+      node('b', { name: 'Use', position: [400, 0], parameters: { text: `{{ $('Fetch').item.json.x }}` } }),
+    ],
+    connections: [link('t', 'a'), link('a', 'b')],
+  }
+
+  it('copies the selected nodes and only the connections between them', () => {
+    const copied = copyNodes(graph, new Set(['a', 'b']))
+    expect(copied.nodes.map((n) => n.id)).toEqual(['a', 'b'])
+    expect(copied.connections).toEqual([link('a', 'b')])
+  })
+
+  it('reads its own clipboard text and nothing else', () => {
+    const copied = copyNodes(graph, new Set(['a']))
+    expect(parseClipboard(JSON.stringify(copied))).toEqual(copied)
+    expect(parseClipboard('hello')).toBeNull()
+    expect(parseClipboard(JSON.stringify({ nodes: [], connections: [] }))).toBeNull()
+  })
+
+  it('pastes with new ids, unique names, shifted, and keeps expressions between pasted nodes', () => {
+    const { graph: next, ids } = pasteNodes(graph, copyNodes(graph, new Set(['a', 'b'])))
+    const pasted = next.nodes.filter((n) => ids.includes(n.id))
+
+    expect(ids).toHaveLength(2)
+    expect(ids).not.toContain('a')
+    expect(pasted.map((n) => n.name)).toEqual(['Fetch1', 'Use1'])
+    expect(pasted[0].position).toEqual([200 + PASTE_OFFSET, PASTE_OFFSET])
+    // Use1 now reads from Fetch1, its pasted partner.
+    expect(pasted[1].parameters.text).toBe(`{{ $('Fetch1').item.json.x }}`)
+    expect(next.connections.at(-1)).toEqual(link(ids[0], ids[1]))
+    // The originals are untouched.
+    expect(next.nodes.slice(0, 3)).toEqual(graph.nodes)
+  })
+
+  it('shifts a second paste further, instead of stacking on the first', () => {
+    const copied = copyNodes(graph, new Set(['a']))
+    const once = pasteNodes(graph, copied).graph
+    const twice = pasteNodes(once, copied)
+    const second = twice.graph.nodes.find((n) => n.id === twice.ids[0])!
+    expect(second.position).toEqual([200 + 2 * PASTE_OFFSET, 2 * PASTE_OFFSET])
+    expect(second.name).toBe('Fetch2')
   })
 })

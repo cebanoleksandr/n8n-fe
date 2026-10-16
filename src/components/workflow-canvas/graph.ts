@@ -109,6 +109,16 @@ function escapeRegExp(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+/** Matches $('name') and $("name") in expressions. */
+function referencePattern(name: string) {
+  return new RegExp(`\\$\\((['"])${escapeRegExp(name)}\\1\\)`, 'g')
+}
+
+/** $('name') in the matched quote style; "$" in the name stays literal. */
+function referenceReplacement(name: string) {
+  return `$$($1${name.replace(/\$/g, '$$$$')}$1)`
+}
+
 /** Replaces $('old') / $("old") in every string, however deep. */
 function renameReferences(value: unknown, pattern: RegExp, replacement: string): unknown {
   if (typeof value === 'string') return value.replace(pattern, replacement)
@@ -128,8 +138,8 @@ function renameReferences(value: unknown, pattern: RegExp, replacement: string):
 export function renameNode(graph: WorkflowGraph, nodeId: string, name: string): WorkflowGraph {
   const node = graph.nodes.find((n) => n.id === nodeId)
   if (!node || node.name === name) return graph
-  const pattern = new RegExp(`\\$\\((['"])${escapeRegExp(node.name)}\\1\\)`, 'g')
-  const replacement = `$$($1${name.replace(/\$/g, '$$$$')}$1)`
+  const pattern = referencePattern(node.name)
+  const replacement = referenceReplacement(name)
   return {
     ...graph,
     nodes: graph.nodes.map((n) => ({
@@ -137,5 +147,94 @@ export function renameNode(graph: WorkflowGraph, nodeId: string, name: string): 
       name: n.id === nodeId ? name : n.name,
       parameters: renameReferences(n.parameters, pattern, replacement) as Record<string, unknown>,
     })),
+  }
+}
+
+/** What copying nodes puts on the clipboard (as JSON text). */
+export interface ClipboardNodes {
+  format: 'flow-nodes@1'
+  nodes: WorkflowNode[]
+  /** Only those between the copied nodes. */
+  connections: WorkflowConnection[]
+}
+
+/** The selected nodes and the connections among them. */
+export function copyNodes(graph: WorkflowGraph, ids: Set<string>): ClipboardNodes {
+  return {
+    format: 'flow-nodes@1',
+    nodes: graph.nodes.filter((node) => ids.has(node.id)),
+    connections: graph.connections.filter((c) => ids.has(c.from.nodeId) && ids.has(c.to.nodeId)),
+  }
+}
+
+/** Copied nodes from clipboard text, or null for anything else. */
+export function parseClipboard(text: string): ClipboardNodes | null {
+  try {
+    const data = JSON.parse(text) as Partial<ClipboardNodes>
+    if (data?.format !== 'flow-nodes@1' || !Array.isArray(data.nodes) || !Array.isArray(data.connections)) {
+      return null
+    }
+    return data as ClipboardNodes
+  } catch {
+    return null
+  }
+}
+
+/** How far a paste lands from the copied nodes. */
+export const PASTE_OFFSET = 40
+
+/**
+ * Adds copied nodes to `graph`: new ids, names made unique (expressions
+ * between the pasted nodes follow), shifted so they don't cover what's there.
+ * Returns the new graph and the ids of the pasted nodes.
+ */
+export function pasteNodes(
+  graph: WorkflowGraph,
+  data: ClipboardNodes,
+): { graph: WorkflowGraph; ids: string[] } {
+  const ids = new Map(data.nodes.map((node) => [node.id, crypto.randomUUID()]))
+
+  // Shift by the offset, again while the first one would sit on a node.
+  const taken = new Set(graph.nodes.map((node) => node.position.join(',')))
+  const first = data.nodes[0]
+  let shift = PASTE_OFFSET
+  while (first && taken.has([first.position[0] + shift, first.position[1] + shift].join(','))) {
+    shift += PASTE_OFFSET
+  }
+
+  let pasted: WorkflowNode[] = []
+  const renames: [string, string][] = []
+  for (const node of data.nodes) {
+    const name = uniqueName(node.name, [...graph.nodes, ...pasted])
+    if (name !== node.name) renames.push([node.name, name])
+    pasted.push({
+      ...node,
+      id: ids.get(node.id)!,
+      name,
+      position: [node.position[0] + shift, node.position[1] + shift],
+    })
+  }
+
+  // A pasted node referring to another pasted one by name keeps doing so.
+  for (const [from, to] of renames) {
+    pasted = pasted.map((node) => ({
+      ...node,
+      parameters: renameReferences(node.parameters, referencePattern(from), referenceReplacement(to)) as Record<
+        string,
+        unknown
+      >,
+    }))
+  }
+
+  const connections = data.connections
+    .filter((c) => ids.has(c.from.nodeId) && ids.has(c.to.nodeId))
+    .map((c) => ({
+      from: { nodeId: ids.get(c.from.nodeId)!, index: c.from.index },
+      to: { nodeId: ids.get(c.to.nodeId)!, index: c.to.index },
+    }))
+
+  return {
+    graph: { nodes: [...graph.nodes, ...pasted], connections: [...graph.connections, ...connections] },
+    ids: pasted.map((node) => node.id),
   }
 }

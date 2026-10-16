@@ -48,12 +48,18 @@ interface IProps {
   selectedNodeId?: string | null
   onNodeClick?: (nodeId: string) => void
   onNodeDoubleClick?: (nodeId: string) => void
-  /** Makes the canvas editable: moves, connections and deletions come back here. */
-  onGraphChange?: (graph: WorkflowGraph) => void
+  /**
+   * Makes the canvas editable: moves, connections and deletions come back
+   * here. `continuous` marks a drag in progress (one undo step for the whole drag).
+   */
+  onGraphChange?: (graph: WorkflowGraph, change?: { continuous: boolean }) => void
   /** The "+" on a free output: add a node after it. */
   onAddFrom?: (source: ConnectionEndpoint) => void
   /** Nodes whose output is pinned for test runs: they get a pin. */
   pinnedNodeIds?: Set<string>
+  /** Selected nodes, when the parent keeps the selection (copy, paste). */
+  selection?: Set<string>
+  onSelectionChange?: (ids: Set<string>) => void
 }
 
 /** "out-2" / "in-0" -> 2 / 0. */
@@ -79,6 +85,8 @@ const WorkflowCanvas: FC<IProps> = ({
   onGraphChange,
   onAddFrom,
   pinnedNodeIds,
+  selection,
+  onSelectionChange,
 }) => {
   const { t } = useTranslation()
   const { mode, systemMode } = useColorScheme()
@@ -88,7 +96,9 @@ const WorkflowCanvas: FC<IProps> = ({
   // React Flow reads sizes from node.measured: nodes rebuilt without them get
   // measured again, which makes edges flicker while dragging.
   const [measured, setMeasured] = useState(new Map<string, { width: number; height: number }>())
-  const [selectedNodes, setSelectedNodes] = useState(new Set<string>())
+  const [ownSelection, setOwnSelection] = useState(new Set<string>())
+  // The parent's selection if it keeps one, else this canvas's own.
+  const selectedNodes = selection ?? ownSelection
   const [selectedEdges, setSelectedEdges] = useState(new Set<string>())
 
   const nodes = useMemo<CanvasNodeType[]>(() => {
@@ -179,37 +189,35 @@ const WorkflowCanvas: FC<IProps> = ({
 
     const selects = changes.filter((c) => c.type === 'select')
     if (selects.length) {
-      setSelectedNodes((current) => {
-        const next = new Set(current)
-        for (const change of selects) {
-          if (change.type !== 'select') continue
-          if (change.selected) next.add(change.id)
-          else next.delete(change.id)
-        }
-        return next
-      })
+      const next = new Set(selectedNodes)
+      for (const change of selects) {
+        if (change.type !== 'select') continue
+        if (change.selected) next.add(change.id)
+        else next.delete(change.id)
+      }
+      if (onSelectionChange) onSelectionChange(next)
+      else setOwnSelection(next)
     }
 
+    // Deletions arrive through onDelete, nodes and edges together.
     const moves = new Map<string, [number, number]>()
-    const removed = new Set<string>()
+    const positions = new Map(graph.nodes.map((node) => [node.id, node.position]))
     for (const change of changes) {
       if (change.type === 'position' && change.position) {
-        moves.set(change.id, [Math.round(change.position.x), Math.round(change.position.y)])
+        const to: [number, number] = [Math.round(change.position.x), Math.round(change.position.y)]
+        const from = positions.get(change.id)
+        // A click reports its position too: not a move.
+        if (!from || from[0] !== to[0] || from[1] !== to[1]) moves.set(change.id, to)
       }
-      if (change.type === 'remove') removed.add(change.id)
     }
-    if (!moves.size && !removed.size) return
-
-    let next: WorkflowGraph = moves.size
-      ? {
-          ...graph,
-          nodes: graph.nodes.map((node) =>
-            moves.has(node.id) ? { ...node, position: moves.get(node.id)! } : node,
-          ),
-        }
-      : graph
-    if (removed.size) next = removeNodes(next, removed)
-    onGraphChange(next)
+    if (!moves.size) return
+    onGraphChange(
+      {
+        ...graph,
+        nodes: graph.nodes.map((node) => (moves.has(node.id) ? { ...node, position: moves.get(node.id)! } : node)),
+      },
+      { continuous: true },
+    )
   }
 
   const handleEdgesChange = (changes: EdgeChange[]) => {
@@ -226,13 +234,20 @@ const WorkflowCanvas: FC<IProps> = ({
         return next
       })
     }
-    const removed = new Set(changes.filter((c) => c.type === 'remove').map((c) => c.id))
-    if (removed.size) {
-      onGraphChange({
-        ...graph,
-        connections: graph.connections.filter((c) => !removed.has(connectionId(c))),
-      })
-    }
+  }
+
+  /**
+   * Delete/Backspace on a selection: one graph change for the nodes and the
+   * edges, so it is one undo step (React Flow reports them separately too).
+   */
+  const handleDelete = ({ nodes: deletedNodes, edges: deletedEdges }: { nodes: { id: string }[]; edges: { id: string }[] }) => {
+    if (!editable) return
+    const edgeIds = new Set(deletedEdges.map((edge) => edge.id))
+    const next = removeNodes(
+      { ...graph, connections: graph.connections.filter((c) => !edgeIds.has(connectionId(c))) },
+      new Set(deletedNodes.map((node) => node.id)),
+    )
+    onGraphChange(next)
   }
 
   // No duplicates, and no cycles: the backend refuses both.
@@ -335,6 +350,7 @@ const WorkflowCanvas: FC<IProps> = ({
       onNodesChange={handleNodesChange}
       onEdgesChange={handleEdgesChange}
       onConnect={handleConnect}
+      onDelete={handleDelete}
       onConnectEnd={handleConnectEnd}
       edgesReconnectable={editable}
       onReconnect={handleReconnect}
@@ -348,6 +364,9 @@ const WorkflowCanvas: FC<IProps> = ({
       nodesConnectable={editable}
       edgesFocusable={editable}
       deleteKeyCode={editable ? ['Backspace', 'Delete'] : null}
+      // Ctrl/Cmd+click adds to the selection; Shift+drag on the canvas draws a
+      // selection box. (Shift can't do both: React Flow then drops the box.)
+      multiSelectionKeyCode={['Meta', 'Control']}
       onNodeClick={(_, node) => onNodeClick?.(node.id)}
       onNodeDoubleClick={(_, node) => onNodeDoubleClick?.(node.id)}
     >

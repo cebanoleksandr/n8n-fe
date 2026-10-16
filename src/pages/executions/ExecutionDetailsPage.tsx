@@ -16,6 +16,7 @@ import WorkflowCanvas from '../../components/workflow-canvas/WorkflowCanvas'
 import {
   useCancelExecution,
   useExecution,
+  pollWhileRunning,
   useExecutionEvents,
   useHasRole,
   useNodeTypes,
@@ -51,7 +52,7 @@ const ExecutionDetailsPage = () => {
   const statusLine = useExecutionStatusLine()
   const { executionId } = useParams()
 
-  const { data: execution, isPending, isError } = useExecution(executionId)
+  const { data: execution, isPending, isError } = useExecution(executionId, pollWhileRunning)
   const finished = !!execution && isFinished(execution.status)
   // A run in progress updates live: statuses, then each node's output.
   useExecutionEvents(execution && !finished ? { executionId } : null)

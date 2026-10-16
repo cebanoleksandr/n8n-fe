@@ -10,6 +10,8 @@ import AddIcon from '@mui/icons-material/Add'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import HistoryIcon from '@mui/icons-material/History'
+import RedoIcon from '@mui/icons-material/Redo'
+import UndoIcon from '@mui/icons-material/Undo'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { useTranslation } from 'react-i18next'
 import { useBlocker, useParams } from 'react-router-dom'
@@ -25,12 +27,24 @@ import ExecutionLogs from '../../components/executions/ExecutionLogs'
 import { canvasRunOf } from '../../components/executions/executionData'
 import ConfirmPopup from '../../components/popups/ConfirmPopup'
 import {
+  type ClipboardNodes,
+  copyNodes,
   createNode,
-  NODE_SPACING_X,
   nextFreePosition,
+  NODE_SPACING_X,
   outputNamesOf,
+  parseClipboard,
+  pasteNodes,
+  removeNodes,
   renameNode,
 } from '../../components/workflow-canvas/graph'
+import {
+  emptyHistory,
+  type GraphHistory,
+  recordEdit,
+  redo,
+  undo,
+} from '../../components/workflow-editor/graphHistory'
 import WorkflowCanvas from '../../components/workflow-canvas/WorkflowCanvas'
 import NodePicker from '../../components/workflow-editor/NodePicker'
 import { useEditorRun } from '../../components/workflow-editor/useEditorRun'
@@ -60,6 +74,8 @@ interface Draft {
   graph: WorkflowGraph
   /** The graph as last saved: unsaved changes are anything else. */
   saved: WorkflowGraph
+  /** Undo / redo of edits to `graph`. */
+  history: GraphHistory
 }
 
 /** Where the picker adds a node: after an output, or anywhere. */
@@ -79,7 +95,7 @@ const WorkflowEditorPage = () => {
   // refetch (e.g. after toggling "active") never wipes unsaved changes.
   const [draft, setDraft] = useState<Draft | null>(null)
   if (workflow.data && draft?.workflowId !== workflowId) {
-    setDraft({ workflowId, graph: workflow.data.graph, saved: workflow.data.graph })
+    setDraft({ workflowId, graph: workflow.data.graph, saved: workflow.data.graph, history: emptyHistory() })
   }
   const graph = draft?.workflowId === workflowId ? draft.graph : undefined
   const isDirty = !!draft && draft.graph !== draft.saved
@@ -123,10 +139,34 @@ const WorkflowEditorPage = () => {
   const showPicker = canEdit && !historyOpen && (picker !== null || (isEmpty && !pickerDismissed))
   const previewing = previewId !== null
 
+  // Every edit is recorded for undo; a drag or typing in a field is one step.
   const setGraph = useCallback(
-    (next: WorkflowGraph) => setDraft((current) => current && { ...current, graph: next }),
+    (next: WorkflowGraph, change?: { continuous: boolean }) =>
+      setDraft(
+        (current) =>
+          current &&
+          (current.graph === next
+            ? current
+            : {
+                ...current,
+                graph: next,
+                history: recordEdit(current.history, current.graph, Date.now(), change?.continuous),
+              }),
+      ),
     [],
   )
+
+  const step = (direction: 'undo' | 'redo') =>
+    setDraft((current) => {
+      if (!current) return current
+      const result = (direction === 'undo' ? undo : redo)(current.history, current.graph)
+      return result ? { ...current, graph: result.graph, history: result.history } : current
+    })
+  const canUndo = !!draft?.history.past.length
+  const canRedo = !!draft?.history.future.length
+
+  // Selected nodes, for copy, cut, duplicate and select all.
+  const [selection, setSelection] = useState(new Set<string>())
 
   const closePicker = () => {
     setPicker(null)
@@ -196,7 +236,8 @@ const WorkflowEditorPage = () => {
 
   const updateNode = (node: WorkflowNode) => {
     if (!graph) return
-    setGraph({ ...graph, nodes: graph.nodes.map((n) => (n.id === node.id ? node : n)) })
+    // Typing in a field: one undo step per pause, not per key.
+    setGraph({ ...graph, nodes: graph.nodes.map((n) => (n.id === node.id ? node : n)) }, { continuous: true })
   }
 
   const openHistory = () => {
@@ -238,7 +279,7 @@ const WorkflowEditorPage = () => {
     if (!(await save())) return
     try {
       const restored = await restore.mutateAsync({ id: workflowId, versionId: preview.data.id })
-      setDraft({ workflowId, graph: restored.graph, saved: restored.graph })
+      setDraft({ workflowId, graph: restored.graph, saved: restored.graph, history: emptyHistory() })
       setPreviewId(null)
       dispatch(
         setAlertAC({
@@ -251,13 +292,81 @@ const WorkflowEditorPage = () => {
     }
   }
 
-  // Ctrl/Cmd+S saves, like any editor.
+  /**
+   * Canvas shortcuts apply when no field has focus (fields have their own
+   * undo and copy) and no popup is open, as in any editor.
+   */
+  const canvasHasFocus = (target: EventTarget | null) =>
+    !previewing &&
+    !document.querySelector('[role=dialog]') &&
+    !(
+      target instanceof HTMLElement &&
+      (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+    )
+
+  const selectedIds = () => new Set(graph?.nodes.filter((node) => selection.has(node.id)).map((node) => node.id))
+
+  const paste = (data: ClipboardNodes) => {
+    if (!graph) return
+    const result = pasteNodes(graph, data)
+    setGraph(result.graph)
+    setSelection(new Set(result.ids))
+  }
+
   const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+    const mod = event.ctrlKey || event.metaKey
+    if (!mod) return
+    const key = event.key.toLowerCase()
+    // Ctrl/Cmd+S saves, wherever the focus is.
+    if (key === 's') {
       event.preventDefault()
       if (canEdit) void save()
+      return
+    }
+    if (!canEdit || !graph || !canvasHasFocus(event.target)) return
+    if (key === 'z' || key === 'y') {
+      event.preventDefault()
+      step(key === 'y' || event.shiftKey ? 'redo' : 'undo')
+    } else if (key === 'a') {
+      event.preventDefault()
+      setSelection(new Set(graph.nodes.map((node) => node.id)))
+    } else if (key === 'd') {
+      event.preventDefault()
+      const ids = selectedIds()
+      if (ids.size) paste(copyNodes(graph, ids))
     }
   })
+
+  // Copy, cut and paste through the clipboard events: no permission prompt,
+  // and the nodes travel between workflows and tabs as JSON text.
+  const onClipboard = useEffectEvent((event: ClipboardEvent) => {
+    if (!graph || !canvasHasFocus(event.target)) return
+    if (event.type === 'paste') {
+      const data = canEdit ? parseClipboard(event.clipboardData?.getData('text/plain') ?? '') : null
+      if (!data) return
+      event.preventDefault()
+      paste(data)
+      return
+    }
+    // Copying text the user selected on the page stays a text copy.
+    if (window.getSelection()?.toString()) return
+    const ids = selectedIds()
+    if (!ids.size) return
+    event.preventDefault()
+    event.clipboardData?.setData('text/plain', JSON.stringify(copyNodes(graph, ids)))
+    if (event.type === 'cut' && canEdit) {
+      setGraph(removeNodes(graph, ids))
+      setSelection(new Set())
+    }
+  })
+  useEffect(() => {
+    const listener = (event: ClipboardEvent) => onClipboard(event)
+    for (const type of ['copy', 'cut', 'paste'] as const) document.addEventListener(type, listener)
+    return () => {
+      for (const type of ['copy', 'cut', 'paste'] as const) document.removeEventListener(type, listener)
+    }
+  }, [])
+
   useEffect(() => {
     const listener = (event: KeyboardEvent) => onKeyDown(event)
     window.addEventListener('keydown', listener)
@@ -356,6 +465,8 @@ const WorkflowEditorPage = () => {
               nodeTypeDescriptions={nodeTypes.data}
               run={run}
               pinnedNodeIds={pinnedNodeIds}
+              selection={selection}
+              onSelectionChange={setSelection}
               onGraphChange={canEdit ? setGraph : undefined}
               onAddFrom={canEdit ? (source) => setPicker({ source }) : undefined}
               onNodeDoubleClick={setOpenNodeId}
@@ -439,6 +550,34 @@ const WorkflowEditorPage = () => {
                         : 'editor.saved',
                 )}
               </Button>
+            )}
+            {canEdit && !previewing && (
+              <div className="flex">
+                <Tooltip title={t('editor.undo')}>
+                  <span>
+                    <IconButton
+                      onClick={() => step('undo')}
+                      disabled={!canUndo}
+                      aria-label={t('editor.undo')}
+                      sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: '8px 0 0 8px' }}
+                    >
+                      <UndoIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                <Tooltip title={t('editor.redo')}>
+                  <span>
+                    <IconButton
+                      onClick={() => step('redo')}
+                      disabled={!canRedo}
+                      aria-label={t('editor.redo')}
+                      sx={{ bgcolor: 'background.paper', border: 1, borderLeft: 0, borderColor: 'divider', borderRadius: '0 8px 8px 0' }}
+                    >
+                      <RedoIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </div>
             )}
             {!historyOpen && (
               <Tooltip title={t('editor.versions.title')} placement="bottom">

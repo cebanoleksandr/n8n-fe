@@ -13,6 +13,7 @@ import type {
   RunWorkflowInput,
 } from '../../api/types'
 import { executionsService } from '../../services/executions.service'
+import { isFinished } from '../../api/types'
 import type { QueryOptions } from './types'
 
 export function useExecutions(
@@ -28,8 +29,8 @@ export function useExecutions(
 }
 
 /**
- * Pair with useExecutionEvents for live updates, or pass
- * `refetchInterval: (q) => (q.state.data && isFinished(q.state.data.status) ? false : 2000)`.
+ * Pair with useExecutionEvents for live updates, and pass pollWhileRunning
+ * so a missed event can't leave the run looking unfinished.
  */
 export function useExecution(
   id: string | undefined,
@@ -92,4 +93,17 @@ export function useCancelExecution() {
       })
     },
   })
+}
+
+/** How often a run in progress is re-read, in case a live event was missed. */
+const RUNNING_POLL_MS = 2000
+
+/**
+ * Re-reads an execution while it runs. Live events do the real work; this
+ * catches up when one is lost (it finished before the subscription, or the
+ * socket reconnected), so a page never shows "running" forever.
+ */
+export const pollWhileRunning = {
+  refetchInterval: (query: { state: { data?: Execution } }) =>
+    query.state.data && isFinished(query.state.data.status) ? false : RUNNING_POLL_MS,
 }
