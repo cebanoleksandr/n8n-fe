@@ -3,6 +3,10 @@
 The web app of Flow, a workflow automation platform in the spirit of n8n:
 React 19, TypeScript, Vite, MUI, TanStack Query, React Flow and CodeMirror.
 
+**Demo: https://cebanoleksandr.github.io/n8n-fe/** — sign up with any email.
+The API runs on Render's free plan and sleeps after 15 minutes without
+traffic, so the first request after a pause can take about a minute.
+
 ## Development
 
 The backend must be running (see `../backend`); Vite proxies `/api` and
@@ -111,6 +115,11 @@ and the frontend calls the API (and its socket.io) by absolute URL
    | `CORS_ORIGINS` | `https://<user>.github.io` (an origin, no path) |
    | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | from B2 |
    | `S3_ACCESS_KEY`, `S3_SECRET_KEY` | the B2 key ID and application key |
+
+   `flow-api.onrender.com` stands for your service's URL: if the name is
+   taken, Render appends a suffix (this project's is
+   `flow-api-ds4z.onrender.com`). Use the URL shown in the dashboard here, in
+   `PUBLIC_URL` and in the frontend's `VITE_API_URL`.
 
 3. After the deploy, `https://flow-api.onrender.com/api/health/ready` should
    report `database`, `redis` and `storage` as `ok`.
