@@ -1,0 +1,1 @@
+import{M as e,N as t}from"./createSvgIcon-CGp2e8-z.js";function n(e){return t(`MuiListItemButton`,e)}var r=e(`MuiListItemButton`,[`root`,`focusVisible`,`dense`,`alignItemsFlexStart`,`disabled`,`divider`,`gutters`,`selected`]);export{r as n,n as t};

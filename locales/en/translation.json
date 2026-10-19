@@ -1,0 +1,517 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "optional": "Optional",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "actions": "Actions",
+    "clearSearch": "Clear search",
+    "back": "Back",
+    "save": "Save",
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "updated": "Last updated {{when}}",
+    "created": "Created {{when}}",
+    "close": "Close"
+  },
+  "nav": {
+    "workflows": "Workflows",
+    "executions": "Executions",
+    "credentials": "Credentials",
+    "settings": "Settings",
+    "profile": "Profile",
+    "workspace": "Workspace",
+    "members": "Members",
+    "logout": "Log out",
+    "overview": "Overview",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
+  },
+  "errors": {
+    "tooManyRequests": "Too many attempts. Try again later.",
+    "network": "Can't reach the server. Check your connection."
+  },
+  "auth": {
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Repeat password",
+      "workspaceName": "Workspace name"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email",
+      "emailTooLong": "Email is too long",
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "At least 8 characters",
+      "passwordTooLong": "Password is too long",
+      "confirmPasswordRequired": "Repeat the password",
+      "passwordsMismatch": "Passwords do not match",
+      "nameRequired": "Name is required",
+      "nameTooLong": "Name is too long",
+      "workspaceNameTooLong": "Workspace name is too long"
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Welcome back",
+      "submit": "Sign in",
+      "noAccount": "No account?",
+      "signUpLink": "Sign up",
+      "invalidCredentials": "Invalid email or password"
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "You get a workspace of your own",
+      "passwordHint": "At least 8 characters",
+      "submit": "Sign up",
+      "haveAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "emailTaken": "This email is already registered",
+      "disabled": "Sign-up is disabled. Ask for an invitation.",
+      "success": "Welcome! Your account is ready."
+    },
+    "logout": {
+      "title": "Log out?",
+      "text": "You will need to sign in again to get back to your workflows.",
+      "confirm": "Log out"
+    }
+  },
+  "app": {
+    "name": "Flow"
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Workflows, credentials and executions in this workspace"
+  },
+  "workflows": {
+    "create": "Create workflow",
+    "defaultName": "My workflow",
+    "createFailed": "Could not create the workflow",
+    "loadFailed": "Couldn't load workflows",
+    "exportFailed": "Couldn't export the workflow",
+    "deleted": "Workflow deleted",
+    "deleteFailed": "Couldn't delete the workflow",
+    "empty": {
+      "title": "No workflows yet",
+      "text": "Create your first workflow to automate a task."
+    },
+    "actions": {
+      "open": "Open",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "export": "Download",
+      "delete": "Delete"
+    },
+    "deleteConfirm": {
+      "title": "Delete workflow?",
+      "text": "\"{{name}}\" and all its executions will be deleted. This cannot be undone."
+    },
+    "search": "Search workflows…",
+    "notFound": {
+      "title": "Nothing found",
+      "text": "No workflows match \"{{search}}\"."
+    },
+    "import": {
+      "fromFile": "Import from file",
+      "more": "More ways to create",
+      "done": "Workflow \"{{name}}\" imported",
+      "notJson": "{{file}} is not a JSON file.",
+      "notWorkflow": "{{file}} is not a workflow export: use a file from \"Download\" in a workflow's menu.",
+      "droppedCredentials_one": "Imported. {{count}} credential is not in this workspace: pick one in the node that needs it.",
+      "droppedCredentials_other": "Imported. {{count}} credentials are not in this workspace: pick them in the nodes that need them."
+    }
+  },
+  "workflow": {
+    "tabs": {
+      "editor": "Editor",
+      "executions": "Executions"
+    },
+    "active": "Active",
+    "inactive": "Inactive",
+    "notFound": "Workflow not found",
+    "activateHint": "Add a Webhook or Schedule trigger to activate: a Manual Trigger only runs from the editor."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The page you are looking for does not exist or has been moved.",
+    "back": "Go back",
+    "home": "Go to home page"
+  },
+  "pagination": {
+    "total": "Total {{count}}",
+    "perPage": "{{count}} / page",
+    "perPageLabel": "Items per page"
+  },
+  "sort": {
+    "label": "Sort",
+    "updatedDesc": "Sort by last updated",
+    "createdDesc": "Sort by last created",
+    "nameAsc": "Sort by name (A-Z)",
+    "nameDesc": "Sort by name (Z-A)"
+  },
+  "credentials": {
+    "create": "Create credential",
+    "search": "Search credentials…",
+    "searchTypes": "Search apps and services…",
+    "noTypes": "No matching credential types",
+    "chooseType": "Choose a credential type",
+    "newTitle": "New {{type}} credential",
+    "editTitle": "Edit credential",
+    "defaultName": "{{type}} account",
+    "secretKept": "Saved. Leave empty to keep it.",
+    "saved": "Credential saved",
+    "deleted": "Credential deleted",
+    "deleteFailed": "Couldn't delete the credential",
+    "loadFailed": "Couldn't load credentials",
+    "loadOneFailed": "Couldn't load the credential",
+    "unknownType": "Unknown credential type \"{{type}}\"",
+    "fields": {
+      "name": "Name"
+    },
+    "validation": {
+      "required": "This field is required",
+      "number": "Enter a number",
+      "nameRequired": "Name is required"
+    },
+    "empty": {
+      "title": "No credentials yet",
+      "text": "Credentials let your workflows sign in to other apps and services."
+    },
+    "notFound": {
+      "title": "Nothing found",
+      "text": "No credentials match \"{{search}}\"."
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "deleteConfirm": {
+      "title": "Delete credential?",
+      "text": "\"{{name}}\" will be deleted. Workflows that use it will fail until you pick another one."
+    },
+    "oauth2": {
+      "redirectUri": "OAuth Redirect URL",
+      "redirectUriHint": "Register this URL in the provider's app settings.",
+      "connect": "Connect account",
+      "reconnect": "Reconnect",
+      "connected": "Account connected",
+      "connectedStatus": "Connected",
+      "notConnected": "Not connected",
+      "connectFailed": "Couldn't connect the account",
+      "saveFirst": "Save your changes before connecting.",
+      "connectNow": "Saved. Now connect your account."
+    }
+  },
+  "executions": {
+    "autoRefresh": "Auto refresh",
+    "loadFailed": "Couldn't load executions",
+    "canceledAlert": "Execution canceled",
+    "cancelFailed": "Couldn't cancel the execution",
+    "columns": {
+      "workflow": "Workflow",
+      "status": "Status",
+      "started": "Started",
+      "runTime": "Run time",
+      "id": "Exec. ID"
+    },
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "waiting": "Waiting",
+      "success": "Success",
+      "error": "Error",
+      "canceled": "Canceled"
+    },
+    "mode": {
+      "manual": "Started manually",
+      "webhook": "Started by a webhook",
+      "schedule": "Started on schedule",
+      "error": "Started by an error workflow",
+      "subworkflow": "Started by another workflow"
+    },
+    "actions": {
+      "open": "Open",
+      "openWorkflow": "Open workflow",
+      "cancel": "Stop",
+      "openEditor": "Open in editor"
+    },
+    "filter": {
+      "title": "Filter",
+      "status": "Status",
+      "workflow": "Workflow",
+      "any": "Any",
+      "noWorkflows": "No workflows",
+      "reset": "Reset filters"
+    },
+    "empty": {
+      "title": "No executions yet",
+      "text": "Runs of your workflows will show up here."
+    },
+    "notFound": {
+      "title": "Nothing found",
+      "text": "No executions match these filters."
+    },
+    "title": "Executions",
+    "loadMore": "Load more",
+    "workflowEmpty": "Run this workflow, and its executions will show up here.",
+    "notFoundOne": "Couldn't find this execution",
+    "graphFailed": "Couldn't load the workflow version of this run",
+    "version": "Version {{version}}",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "statusIn": {
+      "success": "Succeeded in {{duration}}",
+      "error": "Error in {{duration}}",
+      "canceled": "Canceled after {{duration}}",
+      "queued": "Queued",
+      "running": "Running",
+      "waiting": "Waiting"
+    },
+    "logs": {
+      "input": "Input",
+      "output": "Output",
+      "noItems": "No items",
+      "noInput": "No input data: this node starts the workflow, or nothing reached it.",
+      "noSteps": "No node has run yet",
+      "pickNode": "Pick a node to see its data",
+      "item": "Item {{index}}",
+      "moreItems": "… and {{count}} more items",
+      "from": "From {{node}}",
+      "pinned": "Pinned data",
+      "tries_one": "{{count}} try",
+      "tries_other": "{{count}} tries",
+      "errorItem": "At item {{index}}",
+      "outputN": "Output {{index}}"
+    }
+  },
+  "editor": {
+    "loadFailed": "Couldn't load the workflow",
+    "addFirstStep": "Add first step…",
+    "addNode": "Add node",
+    "save": "Save",
+    "saved": "Saved",
+    "logs": "Logs",
+    "noRunYet": "Execute the workflow to see its logs here.",
+    "name": "Workflow name",
+    "rename": "Click to rename",
+    "renameFailed": "Couldn't rename the workflow",
+    "run": {
+      "execute": "Execute workflow",
+      "running": "Executing…",
+      "succeeded": "Workflow executed successfully",
+      "failed": "Workflow execution failed",
+      "listen": "Listen for test event",
+      "stopListening": "Waiting for a request — stop"
+    },
+    "unsaved": {
+      "title": "Couldn't save your changes",
+      "text": "Leave anyway? The latest changes to this workflow will be lost.",
+      "leave": "Leave"
+    },
+    "groups": {
+      "action": "Actions",
+      "transform": "Data transformation",
+      "flow": "Flow",
+      "trigger": "Triggers"
+    },
+    "picker": {
+      "triggerTitle": "What triggers this workflow?",
+      "triggerSubtitle": "A trigger is a step that starts your workflow",
+      "nextTitle": "What happens next?",
+      "nextSubtitle": "Pick the step to add",
+      "search": "Search nodes…",
+      "noResults": "No matching nodes"
+    },
+    "deleteConnection": "Delete connection",
+    "saving": "Saving…",
+    "saveFailed": "Not saved — retry",
+    "versions": {
+      "title": "Version history",
+      "subtitle": "Saving a change to the logic makes a new version. Moving nodes does not.",
+      "current": "Current",
+      "viewing": "Version {{version}} from {{when}} — read only",
+      "restore": "Restore this version",
+      "backToEditing": "Back to editing",
+      "restored": "Version {{from}} restored as version {{to}}"
+    },
+    "undo": "Undo (Ctrl+Z)",
+    "redo": "Redo (Ctrl+Shift+Z)"
+  },
+  "nodeDetails": {
+    "name": "Node name",
+    "nameRequired": "The name is required",
+    "nameTaken": "Another node already has this name",
+    "test": "Test step",
+    "executing": "Executing…",
+    "noOutput": "Execute this step to see its output.",
+    "noInput": "No input yet: execute the previous nodes, or test this step.",
+    "parameters": "Parameters",
+    "settingsTab": "Settings",
+    "noParameters": "This node has no parameters.",
+    "unknownType": "Unknown node type \"{{type}}\"",
+    "required": "Required",
+    "result": "Result:",
+    "addItem": "Add to {{name}}",
+    "removeItem": "Remove",
+    "credentialFor": "Credential: {{type}}",
+    "credentialMissing": "This credential no longer exists. Pick another one.",
+    "createCredential": "Create new credential",
+    "none": "None",
+    "settings": {
+      "disabled": "Disabled",
+      "disabledHint": "The workflow skips this node and passes its input on.",
+      "continueOnFail": "Continue on fail",
+      "continueOnFailHint": "An error does not stop the workflow; the node outputs the error instead.",
+      "retryOnFail": "Retry on fail",
+      "retryOnFailHint": "Try again when the node fails.",
+      "maxTries": "Max tries",
+      "waitBetweenTries": "Wait between tries (ms)"
+    },
+    "dragHint": "Drag into a parameter to use this field",
+    "webhook": {
+      "title": "Webhook URLs",
+      "test": "Test URL",
+      "production": "Production URL",
+      "setPath": "Set a path below to get the URL, or",
+      "testHint": "Listen, then send one request here: it runs the saved workflow and shows the result in the editor.",
+      "productionHint": "Answers only while the workflow is active.",
+      "listen": "Listen for test event",
+      "waiting": "Waiting for a request… {{seconds}} s",
+      "stop": "Stop",
+      "generatePath": "Generate path"
+    },
+    "view": {
+      "fields": "Fields"
+    },
+    "pin": {
+      "pin": "Pin data: test runs use it instead of running this node",
+      "pinned": "Output pinned",
+      "unpinned": "Output unpinned",
+      "pinnedHint": "Pinned: manual runs use this data instead of running the node. Webhook and schedule runs ignore it.",
+      "edit": "Edit",
+      "unpin": "Unpin",
+      "setTestData": "Set test data",
+      "editHint": "A JSON object, or an array of objects (one per item).",
+      "notJson": "Not valid JSON",
+      "notObjects": "Enter an object, or an array of objects",
+      "tooMany": "At most 1000 items",
+      "tooBig": "Pinned data must be under 2 MB"
+    }
+  },
+  "roles": {
+    "viewer": "Viewer",
+    "editor": "Editor",
+    "admin": "Admin",
+    "owner": "Owner",
+    "hints": {
+      "viewer": "Viewers see workflows, executions and credentials, but change nothing.",
+      "editor": "Editors build and run workflows and manage credentials.",
+      "admin": "Admins also manage members and the workspace.",
+      "owner": "Owners can do everything, including managing admins and other owners."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Your account, this workspace and its members",
+    "validation": {
+      "workspaceNameRequired": "Enter a name"
+    },
+    "profile": {
+      "account": "Account",
+      "password": "Password",
+      "passwordHint": "Changing it signs you out everywhere else.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "changePassword": "Change password",
+      "passwordChanged": "Password changed. Other sessions are signed out.",
+      "wrongPassword": "Wrong password",
+      "preferences": "Preferences",
+      "language": "Language",
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System"
+    },
+    "workspace": {
+      "general": "Workspace",
+      "name": "Name",
+      "adminsOnly": "Only admins can rename the workspace.",
+      "renamed": "Workspace renamed",
+      "yours": "Your workspaces",
+      "yoursHint": "Workspaces you are a member of. Workflows and credentials belong to one workspace.",
+      "current": "Current",
+      "switch": "Switch",
+      "leave": "Leave workspace",
+      "leaveHint": "You lose access to its workflows, executions and credentials until invited again.",
+      "leaveLastOwner": "You are its only owner: make someone else an owner first.",
+      "leaveOnly": "This is your only workspace.",
+      "left": "You left the workspace",
+      "leaveConfirm": {
+        "title": "Leave {{name}}?",
+        "text": "You will need a new invitation to come back."
+      }
+    },
+    "members": {
+      "title": "Members",
+      "viewOnly": "Only admins can change roles and invite people.",
+      "member": "Member",
+      "role": "Role",
+      "joined": "Joined",
+      "you": "You",
+      "remove": "Remove from workspace",
+      "removed": "Member removed",
+      "roleChanged": "Role changed",
+      "removeConfirm": {
+        "title": "Remove {{name}}?",
+        "text": "They lose access to this workspace. Their workflows stay."
+      },
+      "inviteTitle": "Invite people",
+      "inviteHint": "Emails are not sent yet: you get a link to share yourself. It is valid for 7 days.",
+      "invite": "Invite",
+      "alreadyMember": "Already a member of this workspace",
+      "linkTitle": "Invitation created",
+      "linkText": "Send this link to {{email}}. Opening it lets them join the workspace.",
+      "linkOnce": "Copy it now: the link is shown only once. To get a new one, invite the same email again.",
+      "done": "Done",
+      "pending": "Pending invitations",
+      "noInvitations": "No pending invitations.",
+      "expires": "expires {{when}}",
+      "revoke": "Revoke",
+      "revoked": "Invitation revoked"
+    }
+  },
+  "invitation": {
+    "title": "Invitation",
+    "join": "Join {{workspace}}",
+    "invitedAs": "You are invited as {{role}}",
+    "existingAccount": "{{email}} already has an account: enter its password to join.",
+    "newAccount": "Create an account for {{email}} to join.",
+    "accept": "Join workspace",
+    "joined": "Welcome to the workspace!",
+    "wrongPassword": "Wrong password for this account",
+    "notFound": "This invitation is invalid or has expired. Ask for a new one."
+  },
+  "workflowSettings": {
+    "title": "Workflow settings",
+    "errorWorkflow": "Error workflow",
+    "none": "None",
+    "errorWorkflowHint": "Runs when an execution of this workflow fails: production runs only (webhook, schedule), not manual ones. It needs an Error Trigger node.",
+    "createErrorWorkflow": "Create one",
+    "errorWorkflowName": "{{name}} — errors",
+    "errorWorkflowCreated": "Error workflow created: add steps after its Error Trigger, e.g. a message to Slack.",
+    "limitTime": "Limit execution time",
+    "timeout": "Timeout",
+    "unit": "Unit",
+    "units": {
+      "seconds": "seconds",
+      "minutes": "minutes",
+      "hours": "hours"
+    },
+    "timeoutHint": "Longer runs are stopped and fail. The server has its own limit (1 hour by default), which always applies.",
+    "saved": "Workflow settings saved"
+  }
+}
