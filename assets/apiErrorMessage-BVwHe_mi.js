@@ -1,1 +1,0 @@
-import{ct as e,lt as t,st as n}from"./api-DNRAZ_Hh.js";function r(r,i,a={}){if(t(r)&&!r.response)return i(`errors.network`);let o=e(r);return o&&a[o]?i(a[o]):o===429?i(`errors.tooManyRequests`):n(r)}export{r as t};
