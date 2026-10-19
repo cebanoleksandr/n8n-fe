@@ -1,10 +1,11 @@
-import { createBrowserRouter, redirect } from 'react-router-dom'
+import { createHashRouter, redirect } from 'react-router-dom'
 import type { ComponentType } from 'react'
 import type { RouteObject } from 'react-router-dom'
 import AppLayout from '../components/layouts/AppLayout'
 import AuthLayout from '../components/layouts/AuthLayout'
 import RootLayout from '../components/layouts/RootLayout'
 import AppLoader from '../components/ui/AppLoader'
+import { BASENAME } from './basename'
 import { guestOnlyLoader, requireAuthLoader } from './loaders'
 
 /**
@@ -133,6 +134,6 @@ export const routes: RouteObject[] = [
   },
 ]
 
-const router = createBrowserRouter(routes)
+const router = createHashRouter(routes, { basename: BASENAME || '/' })
 
 export default router

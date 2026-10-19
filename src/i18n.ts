@@ -29,6 +29,8 @@ void i18n
     // No namespaces here: a ":" in a key or a server message (shown through
     // t() by CustomAlert) must stay text, not split off a namespace.
     nsSeparator: false,
+    // Under Vite's base, e.g. /n8n-fe/locales/... on GitHub Pages.
+    backend: { loadPath: `${import.meta.env.BASE_URL}locales/{{lng}}/{{ns}}.json` },
   })
 
 export default i18n

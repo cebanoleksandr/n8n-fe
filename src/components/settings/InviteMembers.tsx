@@ -18,6 +18,7 @@ import { getErrorStatus } from '../../api/client'
 import type { CreatedInvitation, Role } from '../../api/types'
 import { useInvitations, useInvite, useRevokeInvitation } from '../../hooks/api'
 import { type InviteFormValues, inviteSchema } from '../../pages/settings/schemas'
+import { routeUrl } from '../../router/basename'
 import { setAlertAC } from '../../storage/alertSlice'
 import { useAppDispatch } from '../../storage/hooks'
 import { fonts } from '../../theme'
@@ -29,7 +30,7 @@ import FormTextField from '../ui/FormTextField'
 
 /** The page an invitee opens: AcceptInvitationPage. */
 function inviteLink(token: string) {
-  return `${window.location.origin}/auth/invite/${encodeURIComponent(token)}`
+  return routeUrl(`/auth/invite/${encodeURIComponent(token)}`)
 }
 
 /** The link is returned once: show it right away, ready to copy and send. */
