@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     // The path the app is served under: "/" by default, "/<repo>/" on GitHub Pages.
-    base: '/n8n-fe/',
+    base: env.BASE_PATH || '/',
     plugins: [react(), tailwindcss()],
     server: {
       // Same origin as the app: the refresh cookie (path /api/auth) just works.

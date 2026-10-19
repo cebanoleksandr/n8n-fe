@@ -1,4 +1,4 @@
-import { createHashRouter, redirect } from 'react-router-dom'
+import { createBrowserRouter, redirect } from 'react-router-dom'
 import type { ComponentType } from 'react'
 import type { RouteObject } from 'react-router-dom'
 import AppLayout from '../components/layouts/AppLayout'
@@ -134,6 +134,6 @@ export const routes: RouteObject[] = [
   },
 ]
 
-const router = createHashRouter(routes, { basename: BASENAME || '/' })
+const router = createBrowserRouter(routes, { basename: BASENAME || '/' })
 
 export default router

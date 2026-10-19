@@ -85,7 +85,7 @@ https://<user>.github.io/n8n-fe/  ──HTTPS + WebSocket──►  https://flow
 The two are different sites, so the backend runs with `COOKIE_SAME_SITE=none`:
 the refresh cookie is sent cross-site as `Secure; Partitioned; SameSite=None`,
 and the frontend calls the API (and its socket.io) by absolute URL
-(`VITE_API_URL`).
+(`VITE_API_URL` in `.env.production`).
 
 ### 1. Storage and database
 
@@ -119,15 +119,18 @@ Each push to `main` of `n8n-be` redeploys it.
 
 ### 3. Frontend on GitHub Pages
 
-1. Repository **Settings → Pages → Source: GitHub Actions**.
-2. **Settings → Secrets and variables → Actions → Variables**: add `API_URL`
-   = `https://flow-api.onrender.com/api`.
-3. Push to `main`. `.github/workflows/deploy.yml` builds and publishes after
-   CI passes (or run it by hand: Actions → Deploy to GitHub Pages).
+```bash
+npm run deploy
+```
 
-The app is served under `/<repo>/` (Vite `base`, from `BASE_PATH`). Pages has
-no rewrites, so `404.html` is a copy of the app and deep links still work.
-With a custom domain, set the variable `BASE_PATH` to `/`.
+It builds with `.env.production` (`BASE_PATH=/n8n-fe/`, `VITE_API_URL` = the
+Render API), copies `index.html` to `404.html` and pushes `dist/` to the
+`gh-pages` branch (package `gh-pages`). Once: **Settings → Pages → Source:
+Deploy from a branch → `gh-pages` / root**.
+
+The app is served under `/n8n-fe/` (Vite `base`). Pages has no rewrites, so
+`404.html` is a copy of the app and deep links still work. With a custom
+domain, set `BASE_PATH=/` in `.env.production`.
 
 ### Free plan limits
 

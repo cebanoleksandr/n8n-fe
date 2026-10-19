@@ -12,7 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "deploy": "vite build && gh-pages -d dist"
+    "deploy": "npm run build && cp dist/index.html dist/404.html && gh-pages -d dist --nojekyll"
   },
   "dependencies": {
     "@codemirror/autocomplete": "6.20.3",
