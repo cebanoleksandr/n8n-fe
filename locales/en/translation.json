@@ -28,7 +28,8 @@
     "logout": "Log out",
     "overview": "Overview",
     "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "menu": "Menu"
   },
   "errors": {
     "tooManyRequests": "Too many attempts. Try again later.",
@@ -286,7 +287,8 @@
       "tries_other": "{{count}} tries",
       "errorItem": "At item {{index}}",
       "outputN": "Output {{index}}"
-    }
+    },
+    "backToList": "All executions"
   },
   "editor": {
     "loadFailed": "Couldn't load the workflow",
@@ -339,7 +341,11 @@
       "restored": "Version {{from}} restored as version {{to}}"
     },
     "undo": "Undo (Ctrl+Z)",
-    "redo": "Redo (Ctrl+Shift+Z)"
+    "redo": "Redo (Ctrl+Shift+Z)",
+    "selection": {
+      "open": "Open",
+      "delete": "Delete"
+    }
   },
   "nodeDetails": {
     "name": "Node name",

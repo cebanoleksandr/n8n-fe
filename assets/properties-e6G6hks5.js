@@ -1,1 +1,0 @@
-function e(e,t){let n=e.displayOptions?.show;return!n||Object.entries(n).every(([e,n])=>n.includes(t[e]))}function t(e){let t={};for(let n of e)n.default!==void 0&&(t[n.name]=n.default);return t}function n(e){return e==null||e===``}export{n,e as r,t};

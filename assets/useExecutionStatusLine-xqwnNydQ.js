@@ -1,1 +1,0 @@
-import{r as e}from"./createSvgIcon-CGp2e8-z.js";import{B as t}from"./api-B1xNIPRg.js";import{r as n}from"./formatDate-BwEi_Rdn.js";function r(){let{t:r}=e();return e=>t(e.status)&&e.startedAt&&e.finishedAt?r(`executions.statusIn.${e.status}`,{duration:n(Date.parse(e.finishedAt)-Date.parse(e.startedAt))}):r(`executions.status.${e.status}`)}export{r as t};
