@@ -50,7 +50,7 @@ const NodeSettings: FC<IProps> = ({ node, onChange }) => {
       {toggle('retryOnFail', t('nodeDetails.settings.retryOnFailHint'))}
 
       {node.retryOnFail && (
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <FieldLabel>{t('nodeDetails.settings.maxTries')}</FieldLabel>
             <TextField

@@ -23,6 +23,7 @@ import {
   useWorkflowVersion,
 } from '../../hooks/api'
 import { useExecutionStatusLine } from '../../hooks/useExecutionStatusLine'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import { setAlertAC } from '../../storage/alertSlice'
 import { useAppDispatch } from '../../storage/hooks'
 import { fonts } from '../../theme'
@@ -50,6 +51,7 @@ const ExecutionDetailsPage = () => {
   const dispatch = useAppDispatch()
   const canEdit = useHasRole('editor')
   const statusLine = useExecutionStatusLine()
+  const isMobile = useIsMobile()
   const { executionId } = useParams()
 
   const { data: execution, isPending, isError } = useExecution(executionId, pollWhileRunning)
@@ -96,7 +98,7 @@ const ExecutionDetailsPage = () => {
 
   if (isError || !execution) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <Alert severity="error">{t('executions.notFoundOne')}</Alert>
       </div>
     )
@@ -107,12 +109,13 @@ const ExecutionDetailsPage = () => {
 
   return (
     <div className="h-full flex flex-col min-h-0">
-      <div className="shrink-0 flex items-start justify-between gap-4 px-6 py-4">
-        <div className="min-w-0">
+      <div className="shrink-0 flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-4 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="min-w-0 max-w-full">
           <Typography variant="h3">
             {formatDateTime(execution.startedAt ?? execution.createdAt, i18n.language)}
           </Typography>
-          <Typography variant="body2" color="text.secondary" component="div" noWrap>
+          {/* Phones: the details wrap instead of being cut off. */}
+          <Typography variant="body2" color="text.secondary" component="div" noWrap={!isMobile}>
             <Box component="span" sx={{ color: STATUS_COLOR[execution.status], fontWeight: 600 }}>
               {statusLine(execution)}
             </Box>
@@ -138,6 +141,7 @@ const ExecutionDetailsPage = () => {
             <Button
               color="error"
               variant="outlined"
+              size={isMobile ? 'small' : 'medium'}
               startIcon={<StopCircleOutlinedIcon />}
               onClick={handleCancel}
               loading={cancel.isPending}
@@ -147,6 +151,7 @@ const ExecutionDetailsPage = () => {
           )}
           <Button
             variant="outlined"
+            size={isMobile ? 'small' : 'medium'}
             startIcon={<EditOutlinedIcon />}
             onClick={() => navigate(`/workflows/${execution.workflowId}`)}
           >
@@ -156,7 +161,7 @@ const ExecutionDetailsPage = () => {
       </div>
 
       {runError && (
-        <Alert severity="error" className="mx-6 mb-3">
+        <Alert severity="error" className="mx-4 sm:mx-6 mb-3">
           {runError.message}
         </Alert>
       )}
@@ -173,7 +178,7 @@ const ExecutionDetailsPage = () => {
             onNodeClick={(nodeId) => selectStep(lastSteps.get(nodeId) ?? null)}
           />
         ) : version.isError ? (
-          <Alert severity="error" className="mx-6">
+          <Alert severity="error" className="mx-4 sm:mx-6">
             {t('executions.graphFailed')}
           </Alert>
         ) : (
@@ -183,7 +188,7 @@ const ExecutionDetailsPage = () => {
         )}
       </div>
 
-      <Box className="shrink-0 h-[40%] min-h-56" sx={{ borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+      <Box className="shrink-0 h-[45%] md:h-[40%] min-h-56" sx={{ borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         {version.data && (
           <ExecutionLogs
             execution={execution}

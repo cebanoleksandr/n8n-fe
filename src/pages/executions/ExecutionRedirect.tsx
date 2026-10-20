@@ -15,7 +15,7 @@ const ExecutionRedirect = () => {
   }
   if (isError) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-6">
+      <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6 sm:py-6">
         <Alert severity="error">{t('executions.notFoundOne')}</Alert>
       </div>
     )

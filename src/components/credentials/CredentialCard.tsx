@@ -69,7 +69,7 @@ const CredentialCard: FC<IProps> = ({ credential, typeName, onEdit }) => {
     <>
       <Paper
         onClick={onEdit}
-        className={`flex items-center gap-3 px-4 py-3 ${onEdit ? 'cursor-pointer' : ''}`}
+        className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 ${onEdit ? 'cursor-pointer' : ''}`}
         sx={{
           transition: 'border-color 150ms',
           '&:hover': onEdit ? { borderColor: 'text.secondary' } : undefined,
@@ -86,11 +86,17 @@ const CredentialCard: FC<IProps> = ({ credential, typeName, onEdit }) => {
             <Box component="span" sx={{ mx: 1, color: 'divider' }}>
               |
             </Box>
-            {t('common.updated', { when: formatRelative(credential.updatedAt, i18n.language) })}
-            <Box component="span" sx={{ mx: 1, color: 'divider' }}>
-              |
+            {/* Phones: only the type. */}
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+              <Box component="span" sx={{ mx: 1, color: 'divider' }}>
+                |
+              </Box>
+              {t('common.updated', { when: formatRelative(credential.updatedAt, i18n.language) })}
+              <Box component="span" sx={{ mx: 1, color: 'divider' }}>
+                |
+              </Box>
+              {t('common.created', { when: formatDay(credential.createdAt, i18n.language) })}
             </Box>
-            {t('common.created', { when: formatDay(credential.createdAt, i18n.language) })}
           </Typography>
         </div>
 

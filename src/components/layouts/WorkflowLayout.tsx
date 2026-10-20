@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { Link as RouterLink, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
 import { useCurrentMembership, useHasRole, useSetWorkflowActive, useWorkflow } from '../../hooks/api'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import { setAlertAC } from '../../storage/alertSlice'
 import { useAppDispatch } from '../../storage/hooks'
 import { canActivate } from '../../utils/activation'
@@ -26,6 +27,7 @@ const WorkflowLayout = () => {
   const { pathname } = useLocation()
   const membership = useCurrentMembership()
   const canEdit = useHasRole('editor')
+  const isMobile = useIsMobile()
   const dispatch = useAppDispatch()
   const { data: workflow, isPending, isError } = useWorkflow(workflowId)
   const activatable = !!workflow && canActivate(workflow.graph)
@@ -47,14 +49,19 @@ const WorkflowLayout = () => {
     <div className="h-full flex flex-col">
       <Box
         component="header"
-        className="shrink-0 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 h-14"
+        // Phones: name and switch on one row, the tabs below them.
+        className="shrink-0 grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[1fr_auto_1fr] items-center
+                   gap-x-2 md:gap-4 px-2 md:px-4 pt-1 md:pt-0 md:h-14"
         sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
       >
         <div className="flex items-center gap-1 min-w-0">
-          <Breadcrumbs className="min-w-0">
-            <Link component={RouterLink} to="/workflows" underline="hover" color="text.secondary">
-              {membership?.workspaceName ?? t('nav.overview')}
-            </Link>
+          <Breadcrumbs className="min-w-0" sx={{ '& .MuiBreadcrumbs-ol': { flexWrap: 'nowrap' }, '& .MuiBreadcrumbs-li': { minWidth: 0 } }}>
+            {/* Phones reach the overview from the menu: the name gets the room. */}
+            {!isMobile && (
+              <Link component={RouterLink} to="/workflows" underline="hover" color="text.secondary" noWrap>
+                {membership?.workspaceName ?? t('nav.overview')}
+              </Link>
+            )}
             {isPending ? (
               <Skeleton width={120} />
             ) : isError ? (
@@ -68,7 +75,7 @@ const WorkflowLayout = () => {
           {workflow && <WorkflowMenu workflow={workflow} canEdit={canEdit} />}
         </div>
 
-        <Tabs value={current} sx={{ minHeight: 0 }}>
+        <Tabs value={current} className="col-span-2 order-last md:col-span-1 md:order-none" sx={{ minHeight: 0 }}>
           {tabs.map((tab) => (
             <Tab
               key={tab.to}
@@ -77,7 +84,7 @@ const WorkflowLayout = () => {
               component={NavLink}
               to={tab.to}
               end
-              sx={{ minHeight: 56 }}
+              sx={{ minHeight: { xs: 44, md: 56 } }}
             />
           ))}
         </Tabs>
@@ -85,7 +92,12 @@ const WorkflowLayout = () => {
         <div className="flex items-center justify-end gap-3">
           {workflow && (
             <>
-              <Chip size="small" variant="outlined" label={`v${workflow.version}`} />
+              <Chip
+                size="small"
+                variant="outlined"
+                label={`v${workflow.version}`}
+                sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+              />
               <Tooltip
                 // Explains a disabled switch; an active workflow can always be turned off.
                 title={!workflow.active && !activatable ? t('workflow.activateHint') : ''}
@@ -93,6 +105,8 @@ const WorkflowLayout = () => {
                 <FormControlLabel
                   label={t(workflow.active ? 'workflow.active' : 'workflow.inactive')}
                   labelPlacement="start"
+                  // Phones: the switch alone, its state says enough.
+                  sx={{ '& .MuiFormControlLabel-label': { display: { xs: 'none', sm: 'block' } } }}
                   control={
                     <Switch
                       checked={workflow.active}

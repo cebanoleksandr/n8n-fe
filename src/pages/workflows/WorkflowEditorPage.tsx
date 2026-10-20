@@ -7,6 +7,8 @@ import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import HistoryIcon from '@mui/icons-material/History'
@@ -58,6 +60,7 @@ import {
   useWorkflow,
   useWorkflowVersion,
 } from '../../hooks/api'
+import { useIsMobile, useIsTouch } from '../../hooks/useIsMobile'
 import { setAlertAC } from '../../storage/alertSlice'
 import { useAppDispatch } from '../../storage/hooks'
 import { apiErrorMessage } from '../../utils/apiErrorMessage'
@@ -85,6 +88,10 @@ const WorkflowEditorPage = () => {
   const { t, i18n } = useTranslation()
   const { workflowId } = useParams() as { workflowId: string }
   const canEdit = useHasRole('editor')
+  const isMobile = useIsMobile()
+  const isTouch = useIsTouch()
+  // Toolbar buttons: smaller on phones, so they fit next to each other.
+  const toolSize = isMobile ? 'small' : 'medium'
 
   const workflow = useWorkflow(workflowId)
   const nodeTypes = useNodeTypes()
@@ -422,6 +429,8 @@ const WorkflowEditorPage = () => {
     [execution, editorRun.runningNodeId],
   )
 
+  const selectedNodes = graph?.nodes.filter((node) => selection.has(node.id)) ?? []
+
   // Gone when the node is deleted while its settings are open.
   const openNode = graph?.nodes.find((node) => node.id === openNodeId)
 
@@ -435,14 +444,14 @@ const WorkflowEditorPage = () => {
 
   if (workflow.isError || !graph) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <Alert severity="error">{t('editor.loadFailed')}</Alert>
       </div>
     )
   }
 
   return (
-    <div className="h-full flex min-h-0">
+    <div className="relative h-full flex min-h-0">
       <div className="flex-1 min-w-0 flex flex-col min-h-0">
         <div className="relative flex-1 min-h-0">
           {previewing ? (
@@ -483,7 +492,14 @@ const WorkflowEditorPage = () => {
               icon={<HistoryIcon />}
               className="absolute top-3 left-1/2 -translate-x-1/2 items-center"
               // As wide as its content, so the buttons stay on one line.
-              sx={{ width: 'max-content', maxWidth: 'calc(100% - 24px)', '& .MuiButton-root': { whiteSpace: 'nowrap' } }}
+              // Phones: full width, the buttons go under the text.
+              sx={{
+                width: { xs: 'calc(100% - 24px)', sm: 'max-content' },
+                maxWidth: 'calc(100% - 24px)',
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                '& .MuiAlert-action': { ml: { xs: 0, sm: 'auto' } },
+                '& .MuiButton-root': { whiteSpace: 'nowrap' },
+              }}
               action={
                 <div className="flex gap-1">
                   {canEdit && (
@@ -535,6 +551,7 @@ const WorkflowEditorPage = () => {
               /* Saves by itself; a click (or Ctrl+S) saves right away. */
               <Button
                 variant="outlined"
+                size={toolSize}
                 color={saveRefused ? 'error' : 'inherit'}
                 disabled={!isDirty || update.isPending}
                 onClick={() => void save()}
@@ -556,6 +573,7 @@ const WorkflowEditorPage = () => {
                 <Tooltip title={t('editor.undo')}>
                   <span>
                     <IconButton
+                      size={toolSize}
                       onClick={() => step('undo')}
                       disabled={!canUndo}
                       aria-label={t('editor.undo')}
@@ -568,6 +586,7 @@ const WorkflowEditorPage = () => {
                 <Tooltip title={t('editor.redo')}>
                   <span>
                     <IconButton
+                      size={toolSize}
                       onClick={() => step('redo')}
                       disabled={!canRedo}
                       aria-label={t('editor.redo')}
@@ -582,6 +601,7 @@ const WorkflowEditorPage = () => {
             {!historyOpen && (
               <Tooltip title={t('editor.versions.title')} placement="bottom">
                 <IconButton
+                  size={toolSize}
                   onClick={openHistory}
                   aria-label={t('editor.versions.title')}
                   sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}
@@ -593,6 +613,7 @@ const WorkflowEditorPage = () => {
             {canEdit && !previewing && !showPicker && (
               <Tooltip title={t('editor.addNode')} placement="left">
                 <IconButton
+                  size={toolSize}
                   onClick={() => {
                     setHistoryOpen(false)
                     setPicker({})
@@ -610,17 +631,44 @@ const WorkflowEditorPage = () => {
             <Alert
               severity="error"
               onClose={() => setSaveError(null)}
-              className="absolute top-3 left-3 max-w-lg whitespace-pre-line"
+              // Phones: under the toolbar, across the canvas.
+              className="absolute top-14 inset-x-3 sm:top-3 sm:right-auto sm:max-w-lg whitespace-pre-line"
             >
               {saveError}
             </Alert>
+          )}
+
+          {/* Touch screens: what double-click and the Delete key do with a mouse. */}
+          {isTouch && canEdit && !previewing && selectedNodes.length > 0 && (
+            <Box
+              // Above the run button.
+              className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-1 p-1 rounded-lg shadow-md"
+              sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}
+            >
+              {selectedNodes.length === 1 && (
+                <Button size="small" startIcon={<EditOutlinedIcon />} onClick={() => setOpenNodeId(selectedNodes[0].id)}>
+                  {t('editor.selection.open')}
+                </Button>
+              )}
+              <Button
+                size="small"
+                color="error"
+                startIcon={<DeleteOutlineIcon />}
+                onClick={() => {
+                  setGraph(removeNodes(graph, new Set(selectedNodes.map((node) => node.id))))
+                  setSelection(new Set())
+                }}
+              >
+                {t('editor.selection.delete')}
+              </Button>
+            </Box>
           )}
 
           {canEdit && hasTrigger && !previewing && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
               <Button
                 variant="contained"
-                size="large"
+                size={isMobile ? 'medium' : 'large'}
                 startIcon={<PlayArrowIcon />}
                 onClick={() =>
                   testWebhook.until
@@ -650,7 +698,7 @@ const WorkflowEditorPage = () => {
         <Box
           className="shrink-0 flex flex-col min-h-0"
           sx={{
-            height: logsOpen ? '40%' : 'auto',
+            height: logsOpen ? (isMobile ? '60%' : '40%') : 'auto',
             borderTop: 1,
             borderColor: 'divider',
             bgcolor: 'background.paper',

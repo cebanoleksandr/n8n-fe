@@ -66,84 +66,89 @@ const MembersTable: FC<IProps> = ({ myId, myRole }) => {
 
   return (
     <>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>{t('settings.members.member')}</TableCell>
-            <TableCell>{t('settings.members.role')}</TableCell>
-            <TableCell>{t('settings.members.joined')}</TableCell>
-            <TableCell padding="checkbox" />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {members.data.map((member) => {
-            const isMe = member.userId === myId
-            // Your own role and membership are changed by others (or by leaving).
-            const manageable = !isMe && canManageMember(myRole, member.role)
-            const roles = grantableRoles(myRole)
-            return (
-              <TableRow key={member.userId}>
-                <TableCell>
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Avatar sx={{ width: 32, height: 32, fontSize: 14, bgcolor: 'action.selected', color: 'text.primary' }}>
-                      {member.name.charAt(0).toUpperCase()}
-                    </Avatar>
-                    <div className="min-w-0">
-                      {/* A div: the "You" chip is a div, which a <p> can't hold. */}
-                      <Typography variant="body2" component="div" noWrap sx={{ fontWeight: 600 }}>
-                        {member.name}
-                        {isMe && <Chip size="small" label={t('settings.members.you')} sx={{ ml: 1, height: 18 }} />}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" noWrap component="div">
-                        {member.email}
-                      </Typography>
+      {/* Scrolls sideways on phones rather than squeezing the role picker. */}
+      <div className="overflow-x-auto">
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('settings.members.member')}</TableCell>
+              <TableCell>{t('settings.members.role')}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('settings.members.joined')}</TableCell>
+              <TableCell padding="checkbox" />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {members.data.map((member) => {
+              const isMe = member.userId === myId
+              // Your own role and membership are changed by others (or by leaving).
+              const manageable = !isMe && canManageMember(myRole, member.role)
+              const roles = grantableRoles(myRole)
+              return (
+                <TableRow key={member.userId}>
+                  <TableCell>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar sx={{ width: 32, height: 32, fontSize: 14, bgcolor: 'action.selected', color: 'text.primary' }}>
+                        {member.name.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <div className="min-w-0">
+                        {/* A div: the "You" chip is a div, which a <p> can't hold. */}
+                        <Typography variant="body2" component="div" noWrap sx={{ fontWeight: 600 }}>
+                          {member.name}
+                          {isMe && <Chip size="small" label={t('settings.members.you')} sx={{ ml: 1, height: 18 }} />}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" noWrap component="div">
+                          {member.email}
+                        </Typography>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {manageable ? (
-                    <Select
-                      size="small"
-                      value={member.role}
-                      disabled={changeRole.isPending}
-                      onChange={(e) =>
-                        changeRole.mutate(
-                          { userId: member.userId, role: e.target.value as Role },
-                          {
-                            onSuccess: () =>
-                              dispatch(setAlertAC({ text: 'settings.members.roleChanged', mode: 'success' })),
-                            onError,
-                          },
-                        )
-                      }
-                      inputProps={{ 'aria-label': t('settings.members.role') }}
-                      sx={{ minWidth: 130 }}
-                    >
-                      {roles.map((role) => (
-                        <MenuItem key={role} value={role}>
-                          {t(`roles.${role}`)}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  ) : (
-                    <Chip size="small" variant="outlined" label={t(`roles.${member.role}`)} />
-                  )}
-                </TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDay(member.joinedAt, i18n.language)}</TableCell>
-                <TableCell padding="checkbox">
-                  {manageable && (
-                    <Tooltip title={t('settings.members.remove')}>
-                      <IconButton size="small" onClick={() => setRemoving(member)}>
-                        <PersonRemoveOutlinedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
+                  </TableCell>
+                  <TableCell>
+                    {manageable ? (
+                      <Select
+                        size="small"
+                        value={member.role}
+                        disabled={changeRole.isPending}
+                        onChange={(e) =>
+                          changeRole.mutate(
+                            { userId: member.userId, role: e.target.value as Role },
+                            {
+                              onSuccess: () =>
+                                dispatch(setAlertAC({ text: 'settings.members.roleChanged', mode: 'success' })),
+                              onError,
+                            },
+                          )
+                        }
+                        inputProps={{ 'aria-label': t('settings.members.role') }}
+                        sx={{ minWidth: 130 }}
+                      >
+                        {roles.map((role) => (
+                          <MenuItem key={role} value={role}>
+                            {t(`roles.${role}`)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    ) : (
+                      <Chip size="small" variant="outlined" label={t(`roles.${member.role}`)} />
+                    )}
+                  </TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap', display: { xs: 'none', sm: 'table-cell' } }}>
+                    {formatDay(member.joinedAt, i18n.language)}
+                  </TableCell>
+                  <TableCell padding="checkbox">
+                    {manageable && (
+                      <Tooltip title={t('settings.members.remove')}>
+                        <IconButton size="small" onClick={() => setRemoving(member)}>
+                          <PersonRemoveOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
 
       <ConfirmPopup
         isVisible={!!removing}

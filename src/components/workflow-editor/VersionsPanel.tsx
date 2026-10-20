@@ -31,8 +31,10 @@ const VersionsPanel: FC<IProps> = ({ workflowId, currentVersion, previewId, onPr
   return (
     <Box
       component="aside"
-      className="w-80 shrink-0 flex flex-col min-h-0"
-      sx={{ borderLeft: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
+      // Phones: a sheet over the lower half, the version stays visible above.
+      className="absolute inset-x-0 bottom-0 h-1/2 z-10 shadow-lg md:static md:h-auto md:shadow-none md:w-80
+                 shrink-0 flex flex-col min-h-0"
+      sx={{ borderLeft: { md: 1 }, borderTop: { xs: 1, md: 0 }, borderColor: 'divider', bgcolor: 'background.paper' }}
     >
       <div className="flex items-start gap-2 px-4 pt-4 pb-2">
         <div className="flex-1">

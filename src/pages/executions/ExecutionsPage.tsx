@@ -139,11 +139,12 @@ const ExecutionsPage = () => {
           <Table size="small">
             <TableHead>
               <TableRow>
+                {/* Phones: run time and ID are left out, the row opens them. */}
                 <TableCell>{t('executions.columns.workflow')}</TableCell>
                 <TableCell>{t('executions.columns.status')}</TableCell>
                 <TableCell>{t('executions.columns.started')}</TableCell>
-                <TableCell>{t('executions.columns.runTime')}</TableCell>
-                <TableCell>{t('executions.columns.id')}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('executions.columns.runTime')}</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('executions.columns.id')}</TableCell>
                 <TableCell padding="checkbox" />
               </TableRow>
             </TableHead>
@@ -173,7 +174,7 @@ const ExecutionsPage = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <FormControlLabel
           label={t('executions.autoRefresh')}
           control={

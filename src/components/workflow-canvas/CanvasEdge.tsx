@@ -31,6 +31,7 @@ const CanvasEdge = ({
   markerEnd,
   style,
   data,
+  selected,
 }: EdgeProps<CanvasEdgeType>) => {
   const [hovered, setHovered] = useState(false)
   const [path, labelX, labelY] = getBezierPath({
@@ -41,7 +42,8 @@ const CanvasEdge = ({
     targetY,
     targetPosition,
   })
-  const showDelete = !!data?.onDelete && hovered
+  // Selected too: a tap selects it on touch screens, which have no hover.
+  const showDelete = !!data?.onDelete && (hovered || !!selected)
 
   return (
     <g onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>

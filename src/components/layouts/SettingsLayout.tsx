@@ -17,7 +17,7 @@ const SettingsLayout = () => {
   const current = tabs.find((tab) => pathname === tab.to)?.to ?? false
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-6 flex flex-col gap-4">
+    <div className="max-w-4xl mx-auto px-4 py-4 sm:px-6 sm:py-6 flex flex-col gap-4">
       <div>
         <Typography variant="h2">{t('settings.title')}</Typography>
         <Typography variant="body2" color="text.secondary">
@@ -25,7 +25,12 @@ const SettingsLayout = () => {
         </Typography>
       </div>
 
-      <Tabs value={current} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Tabs
+        value={current}
+        variant="scrollable"
+        scrollButtons={false}
+        sx={{ borderBottom: 1, borderColor: 'divider' }}
+      >
         {tabs.map((tab) => (
           <Tab key={tab.to} value={tab.to} label={t(tab.label)} component={NavLink} to={tab.to} />
         ))}

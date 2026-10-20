@@ -15,6 +15,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined'
 import { useTranslation } from 'react-i18next'
 import type { Execution, NodeTypeDescription, WorkflowGraph, WorkflowNode } from '../../api/types'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import { defaultsOf, isPropertyVisible } from '../../utils/properties'
 import { nodeInputs, outputsByNodeName } from '../executions/executionData'
 import ItemsJson from '../executions/ItemsJson'
@@ -100,6 +101,9 @@ const NodeDetailsPopup: FC<IProps> = ({
 }) => {
   const { t } = useTranslation()
   const titleId = useId()
+  const isMobile = useIsMobile()
+  // Phones show one of the three columns at a time.
+  const [mobileColumn, setMobileColumn] = useState<'input' | 'main' | 'output'>('main')
   const [tab, setTab] = useState<'parameters' | 'settings'>('parameters')
   const [outputTab, setOutputTab] = useState(0)
   const [inputView, setInputView] = useDataView('input')
@@ -245,9 +249,12 @@ const NodeDetailsPopup: FC<IProps> = ({
       onClose={onClose}
       labelledBy={titleId}
       style={{
-        width: '95vw',
-        maxWidth: '95vw',
-        height: '90vh',
+        // Phones: the whole screen.
+        width: isMobile ? '100vw' : '95vw',
+        maxWidth: isMobile ? '100vw' : '95vw',
+        height: isMobile ? '100dvh' : '90vh',
+        maxHeight: isMobile ? '100dvh' : undefined,
+        borderRadius: isMobile ? 0 : undefined,
         padding: 0,
         display: 'flex',
         flexDirection: 'column',
@@ -255,11 +262,11 @@ const NodeDetailsPopup: FC<IProps> = ({
       }}
     >
       <Box
-        className="shrink-0 flex items-center gap-3 px-4 py-3"
+        className="shrink-0 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3"
         sx={{ borderBottom: 1, borderColor: 'divider' }}
       >
         <Box
-          className="shrink-0 flex items-center justify-center rounded-lg"
+          className="shrink-0 hidden sm:flex items-center justify-center rounded-lg"
           sx={{ width: 40, height: 40, bgcolor: 'action.hover', color: 'text.primary', '& svg': { fontSize: 24 } }}
         >
           {nodeIcon(node.type)}
@@ -302,6 +309,7 @@ const NodeDetailsPopup: FC<IProps> = ({
         {canEdit && (
           <Button
             variant="contained"
+            size={isMobile ? 'small' : 'medium'}
             startIcon={<PlayArrowIcon />}
             onClick={onTest}
             loading={isRunning}
@@ -316,11 +324,24 @@ const NodeDetailsPopup: FC<IProps> = ({
         </IconButton>
       </Box>
 
+      {isMobile && (
+        <Tabs
+          value={mobileColumn}
+          onChange={(_, value) => setMobileColumn(value)}
+          variant="fullWidth"
+          sx={{ minHeight: 40, borderBottom: 1, borderColor: 'divider', '& .MuiTab-root': { minHeight: 40, py: 0 } }}
+        >
+          {!isTrigger && <Tab value="input" label={t('executions.logs.input')} />}
+          <Tab value="main" label={t('nodeDetails.parameters')} />
+          <Tab value="output" label={t('executions.logs.output')} />
+        </Tabs>
+      )}
+
       <div className="flex-1 min-h-0 flex">
-        {!isTrigger && (
+        {!isTrigger && (!isMobile || mobileColumn === 'input') && (
           <Column
             title={t('executions.logs.input')}
-            className="w-[30%]"
+            className={isMobile ? 'flex-1' : 'w-[30%]'}
             extra={
               inputs.length > 0 && (
                 <div className="flex items-center gap-2">
@@ -371,113 +392,122 @@ const NodeDetailsPopup: FC<IProps> = ({
           </Column>
         )}
 
-        <Box
-          className="flex-1 min-w-0 flex flex-col min-h-0"
-          sx={{ borderLeft: isTrigger ? 0 : 1, borderRight: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
-        >
-          <Tabs
-            value={tab}
-            onChange={(_, value) => setTab(value)}
+        {(!isMobile || mobileColumn === 'main') && (
+          <Box
+            className="flex-1 min-w-0 flex flex-col min-h-0"
             sx={{
-              px: 2,
-              minHeight: HEADER_HEIGHT,
-              borderBottom: 1,
+              borderLeft: isTrigger || isMobile ? 0 : 1,
+              borderRight: isMobile ? 0 : 1,
               borderColor: 'divider',
-              '& .MuiTab-root': { minHeight: HEADER_HEIGHT },
+              bgcolor: 'background.paper',
             }}
           >
-            <Tab value="parameters" label={t('nodeDetails.parameters')} />
-            <Tab value="settings" label={t('nodeDetails.settingsTab')} />
-          </Tabs>
-          {/* Viewers see the settings but can't change them. */}
-          <div className="flex-1 min-h-0 overflow-auto px-6 py-5" inert={!canEdit}>
-            {/* Fields stay readable on wide screens instead of stretching. */}
-            <div className="max-w-2xl mx-auto">
-            {tab === 'parameters' ? (
-              <div className="flex flex-col gap-5">
-                {description?.description && (
-                  <Typography variant="body2" color="text.secondary">
-                    {description.description}
-                  </Typography>
-                )}
-                {node.type === 'core.webhook' && testWebhook && (
-                  <WebhookUrls
-                    method={String(parameters.method ?? 'POST')}
-                    path={String(parameters.path ?? '')}
-                    canEdit={canEdit}
-                    testWebhook={testWebhook}
-                    onGeneratePath={() => setParameter('path', crypto.randomUUID())}
-                  />
-                )}
-                {credentialSlots.length > 0 && (
-                  <NodeCredentials
-                    descriptions={credentialSlots}
-                    value={node.credentials}
-                    onChange={(credentials) => onChange({ ...node, credentials })}
-                  />
-                )}
-                {description?.properties
-                  .filter((property) => isPropertyVisible(property, parameters))
-                  .map((property) => (
-                    <ParameterField
-                      key={property.name}
-                      property={property}
-                      value={parameters[property.name]}
-                      onChange={(value) => setParameter(property.name, value)}
-                      context={context}
-                      nodeType={node.type}
+            <Tabs
+              value={tab}
+              onChange={(_, value) => setTab(value)}
+              sx={{
+                px: 2,
+                minHeight: HEADER_HEIGHT,
+                borderBottom: 1,
+                borderColor: 'divider',
+                '& .MuiTab-root': { minHeight: HEADER_HEIGHT },
+              }}
+            >
+              <Tab value="parameters" label={t('nodeDetails.parameters')} />
+              <Tab value="settings" label={t('nodeDetails.settingsTab')} />
+            </Tabs>
+            {/* Viewers see the settings but can't change them. */}
+            <div className="flex-1 min-h-0 overflow-auto px-4 py-4 sm:px-6 sm:py-5" inert={!canEdit}>
+              {/* Fields stay readable on wide screens instead of stretching. */}
+              <div className="max-w-2xl mx-auto">
+              {tab === 'parameters' ? (
+                <div className="flex flex-col gap-5">
+                  {description?.description && (
+                    <Typography variant="body2" color="text.secondary">
+                      {description.description}
+                    </Typography>
+                  )}
+                  {node.type === 'core.webhook' && testWebhook && (
+                    <WebhookUrls
+                      method={String(parameters.method ?? 'POST')}
+                      path={String(parameters.path ?? '')}
+                      canEdit={canEdit}
+                      testWebhook={testWebhook}
+                      onGeneratePath={() => setParameter('path', crypto.randomUUID())}
                     />
-                  ))}
-                {description && description.properties.length === 0 && (
-                  <Typography color="text.secondary">{t('nodeDetails.noParameters')}</Typography>
-                )}
-                {!description && <Alert severity="warning">{t('nodeDetails.unknownType', { type: node.type })}</Alert>}
+                  )}
+                  {credentialSlots.length > 0 && (
+                    <NodeCredentials
+                      descriptions={credentialSlots}
+                      value={node.credentials}
+                      onChange={(credentials) => onChange({ ...node, credentials })}
+                    />
+                  )}
+                  {description?.properties
+                    .filter((property) => isPropertyVisible(property, parameters))
+                    .map((property) => (
+                      <ParameterField
+                        key={property.name}
+                        property={property}
+                        value={parameters[property.name]}
+                        onChange={(value) => setParameter(property.name, value)}
+                        context={context}
+                        nodeType={node.type}
+                      />
+                    ))}
+                  {description && description.properties.length === 0 && (
+                    <Typography color="text.secondary">{t('nodeDetails.noParameters')}</Typography>
+                  )}
+                  {!description && <Alert severity="warning">{t('nodeDetails.unknownType', { type: node.type })}</Alert>}
+                </div>
+              ) : (
+                <NodeSettings node={node} onChange={(patch) => onChange({ ...node, ...patch })} />
+              )}
               </div>
-            ) : (
-              <NodeSettings node={node} onChange={(patch) => onChange({ ...node, ...patch })} />
-            )}
             </div>
-          </div>
-        </Box>
+          </Box>
+        )}
 
-        <Column
-          title={t('executions.logs.output')}
-          className={isTrigger ? 'w-[40%]' : 'w-[30%]'}
-          extra={
-            pinDraft ? null : pinned ? (
-              <div className="flex items-center gap-2">
-                <Typography variant="caption" color="text.secondary">
-                  {t('executions.items', { count: pinned.length })}
-                </Typography>
-                <DataViewToggle value={outputView} onChange={setOutputView} />
-              </div>
-            ) : (
-              step && !step.error && (
+        {(!isMobile || mobileColumn === 'output') && (
+          <Column
+            title={t('executions.logs.output')}
+            className={isMobile ? 'flex-1' : isTrigger ? 'w-[40%]' : 'w-[30%]'}
+            extra={
+              pinDraft ? null : pinned ? (
                 <div className="flex items-center gap-2">
                   <Typography variant="caption" color="text.secondary">
-                    {t('executions.items', { count: outputs[shownOutput]?.length ?? 0 })}
+                    {t('executions.items', { count: pinned.length })}
                   </Typography>
                   <DataViewToggle value={outputView} onChange={setOutputView} />
-                  {canEdit && (
-                    <Tooltip title={t('nodeDetails.pin.pin')}>
-                      <IconButton
-                        size="small"
-                        aria-label={t('nodeDetails.pin.pin')}
-                        disabled={isSavingPin}
-                        // The first output: the one pinned data replaces.
-                        onClick={() => void onSetPinned((outputs[0] ?? []).map((item) => item.json))}
-                      >
-                        <PushPinOutlinedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  )}
                 </div>
+              ) : (
+                step && !step.error && (
+                  <div className="flex items-center gap-2">
+                    <Typography variant="caption" color="text.secondary">
+                      {t('executions.items', { count: outputs[shownOutput]?.length ?? 0 })}
+                    </Typography>
+                    <DataViewToggle value={outputView} onChange={setOutputView} />
+                    {canEdit && (
+                      <Tooltip title={t('nodeDetails.pin.pin')}>
+                        <IconButton
+                          size="small"
+                          aria-label={t('nodeDetails.pin.pin')}
+                          disabled={isSavingPin}
+                          // The first output: the one pinned data replaces.
+                          onClick={() => void onSetPinned((outputs[0] ?? []).map((item) => item.json))}
+                        >
+                          <PushPinOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </div>
+                )
               )
-            )
-          }
-        >
-          {renderOutput()}
-        </Column>
+            }
+          >
+            {renderOutput()}
+          </Column>
+        )}
       </div>
     </BasePopup>
   )

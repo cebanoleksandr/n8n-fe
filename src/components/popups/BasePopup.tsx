@@ -83,7 +83,7 @@ const BasePopup: FC<IProps> = ({
             aria-describedby={describedBy}
             tabIndex={-1}
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-[92vw]
-                       sm:w-auto sm:min-w-120 sm:max-w-[90vw] max-h-[90vh] overflow-y-auto m-0
+                       sm:w-auto sm:min-w-120 sm:max-w-[90vw] max-h-[90dvh] overflow-y-auto m-0
                        z-500 shadow-lg p-4 outline-none"
             style={{
               // CSS variables, not theme.palette: with color schemes the palette

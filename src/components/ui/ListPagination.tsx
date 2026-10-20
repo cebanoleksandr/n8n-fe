@@ -21,7 +21,7 @@ const ListPagination: FC<IProps> = ({ total, page, limit, onPageChange, onLimitC
   const pageCount = Math.max(1, Math.ceil(total / limit))
 
   return (
-    <div className="flex items-center justify-end gap-4 flex-wrap">
+    <div className="flex items-center justify-center sm:justify-end gap-x-4 gap-y-2 flex-wrap">
       <Typography variant="body2" color="text.secondary">
         {t('pagination.total', { count: total })}
       </Typography>

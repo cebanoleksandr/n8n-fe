@@ -91,8 +91,8 @@ const theme = createTheme({
   typography: {
     fontFamily: fonts.sans,
     fontSize: 14,
-    h1: { fontSize: '2rem', fontWeight: 700 },
-    h2: { fontSize: '1.5rem', fontWeight: 700 },
+    h1: { fontSize: '2rem', fontWeight: 700, '@media (max-width:599.95px)': { fontSize: '1.625rem' } },
+    h2: { fontSize: '1.5rem', fontWeight: 700, '@media (max-width:599.95px)': { fontSize: '1.25rem' } },
     h3: { fontSize: '1.25rem', fontWeight: 600 },
     h4: { fontSize: '1.125rem', fontWeight: 600 },
     h5: { fontSize: '1rem', fontWeight: 600 },

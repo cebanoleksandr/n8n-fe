@@ -15,7 +15,7 @@ const NotFoundPage = () => {
 
   return (
     <Box
-      className="min-h-screen flex items-center justify-center p-6"
+      className="min-h-dvh flex items-center justify-center p-4 sm:p-6"
       sx={{ bgcolor: 'background.default' }}
     >
       <div className="flex flex-col items-center gap-4 text-center max-w-md">

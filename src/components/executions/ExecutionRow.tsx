@@ -92,8 +92,10 @@ const ExecutionRow: FC<IProps> = ({ execution, canEdit, now }) => {
       <TableCell sx={{ whiteSpace: 'nowrap' }}>
         {formatDateTime(execution.startedAt ?? execution.createdAt, i18n.language)}
       </TableCell>
-      <TableCell sx={{ whiteSpace: 'nowrap' }}>{runTime(execution, now) ?? '—'}</TableCell>
-      <TableCell>
+      <TableCell sx={{ whiteSpace: 'nowrap', display: { xs: 'none', sm: 'table-cell' } }}>
+        {runTime(execution, now) ?? '—'}
+      </TableCell>
+      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
         <Tooltip title={execution.id}>
           <Typography variant="body2" component="span" sx={{ fontFamily: fonts.mono }}>
             {execution.id.slice(0, 8)}

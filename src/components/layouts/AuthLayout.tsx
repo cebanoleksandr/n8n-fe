@@ -5,10 +5,10 @@ import { Outlet } from 'react-router-dom'
 const AuthLayout = () => {
   return (
     <Box
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-dvh flex items-center justify-center p-4"
       sx={{ bgcolor: 'background.default' }}
     >
-      <Paper className="w-full max-w-md p-8">
+      <Paper className="w-full max-w-md p-6 sm:p-8">
         <Outlet />
       </Paper>
     </Box>

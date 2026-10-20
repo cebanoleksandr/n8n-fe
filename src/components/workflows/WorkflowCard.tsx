@@ -94,7 +94,7 @@ const WorkflowCard: FC<IProps> = ({ workflow }) => {
     <>
       <Paper
         onClick={() => navigate(editorUrl)}
-        className="flex items-center gap-4 px-4 py-3 cursor-pointer"
+        className="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-3 cursor-pointer"
         sx={{
           transition: 'border-color 150ms',
           '&:hover': { borderColor: 'text.secondary' },
@@ -115,10 +115,13 @@ const WorkflowCard: FC<IProps> = ({ workflow }) => {
           </Link>
           <Typography variant="caption" color="text.secondary" component="div" noWrap>
             {t('common.updated', { when: formatRelative(workflow.updatedAt, i18n.language) })}
-            <Box component="span" sx={{ mx: 1, color: 'divider' }}>
-              |
+            {/* Phones: only when it was updated. */}
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+              <Box component="span" sx={{ mx: 1, color: 'divider' }}>
+                |
+              </Box>
+              {t('common.created', { when: formatDay(workflow.createdAt, i18n.language) })}
             </Box>
-            {t('common.created', { when: formatDay(workflow.createdAt, i18n.language) })}
           </Typography>
         </div>
 

@@ -9,6 +9,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTranslation } from 'react-i18next'
 import type { NodeGroup, NodeTypeDescription } from '../../api/types'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import { nodeIcon } from '../workflow-canvas/nodeIcons'
 
 const GROUP_ORDER: NodeGroup[] = ['action', 'transform', 'flow', 'trigger']
@@ -24,6 +25,7 @@ interface IProps {
 /** The right-hand panel listing node types to add. */
 const NodePicker: FC<IProps> = ({ nodeTypes, triggersOnly, onPick, onClose }) => {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const [search, setSearch] = useState('')
 
   const groups = useMemo(() => {
@@ -45,8 +47,9 @@ const NodePicker: FC<IProps> = ({ nodeTypes, triggersOnly, onPick, onClose }) =>
   return (
     <Box
       component="aside"
-      className="w-96 shrink-0 flex flex-col min-h-0"
-      sx={{ borderLeft: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
+      // Phones: over the whole canvas.
+      className="absolute inset-0 z-10 md:static md:w-96 shrink-0 flex flex-col min-h-0"
+      sx={{ borderLeft: { md: 1 }, borderColor: 'divider', bgcolor: 'background.paper' }}
     >
       <div className="flex items-start gap-2 px-4 pt-4">
         <div className="flex-1">
@@ -66,7 +69,8 @@ const NodePicker: FC<IProps> = ({ nodeTypes, triggersOnly, onPick, onClose }) =>
         <TextField
           size="small"
           fullWidth
-          autoFocus
+          // The keyboard would cover half the list on phones.
+          autoFocus={!isMobile}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t('editor.picker.search')}

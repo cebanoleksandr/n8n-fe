@@ -62,8 +62,9 @@ const ExecutionsSidebar: FC<IProps> = ({ workflowId }) => {
 
   return (
     <Box
-      className="w-72 shrink-0 flex flex-col min-h-0"
-      sx={{ borderRight: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
+      // Phones: the whole screen, the open run replaces it.
+      className="h-full md:h-auto w-full md:w-72 shrink-0 flex flex-col min-h-0"
+      sx={{ borderRight: { md: 1 }, borderColor: 'divider', bgcolor: 'background.paper' }}
     >
       <div className="px-4 pt-4 pb-2 flex flex-col gap-1">
         <Typography variant="h4">{t('executions.title')}</Typography>

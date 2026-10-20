@@ -14,8 +14,8 @@ interface IProps {
 
 /** One block of a settings page: a title, a short explanation, the controls. */
 const SettingsSection: FC<IProps> = ({ title, description, action, children, danger }) => (
-  <Paper className="flex flex-col gap-4 p-5" sx={danger ? { borderColor: 'error.main' } : undefined}>
-    <div className="flex items-start justify-between gap-4">
+  <Paper className="flex flex-col gap-4 p-4 sm:p-5" sx={danger ? { borderColor: 'error.main' } : undefined}>
+    <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
       <div>
         <Typography variant="h4" color={danger ? 'error' : undefined}>
           {title}
